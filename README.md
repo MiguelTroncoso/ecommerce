@@ -6,16 +6,20 @@ Plataforma e-commerce **ClickAndGo** con entrega polimórfica según tipo de pro
 ---
 
 ## 📌 1. Ficha del Proyecto
-- **Empresa / Caso:** ClickAndGo
-- **Estudiante / Desarrollador:** Miguel Troncoso
-- **Repositorio:** [github.com/MiguelTroncoso/ecommerce](https://github.com/MiguelTroncoso/ecommerce)
-- **Asignatura:** Programación Orientada a Objetos (POO)
-- **Plataforma de Entrega:** Ambiente de Aprendizaje
-- **Herramienta de Modelado:** [draw.io (Diagrama en /docs/diagrama_clases.drawio)](./docs/diagrama_clases.drawio)
-- **Stack Previsto:**
-  - **Modelado / Lógica POO:** Principios SOLID, Abstracción, Herencia, Polimorfismo, Encapsulamiento.
-  - **Frontend:** HTML5, CSS3, JavaScript y Bootstrap.
-  - **Persistencia:** Base de Datos (Relacional).
+- **Institución:** INACAP
+- **Carrera:** Analista Programador
+- **Asignatura:** Programación Orientada a Objetos (Código: TI3V21 — PRIMAVERA 2026)
+- **Sección:** 114-2A-F2
+- **Caso Asignado:** 05: Tienda de e-commerce (**ClickAndGo**)
+- **Integrantes del Equipo:**
+  1. Miguel Troncoso
+  2. Alexandy Remicinthe
+- **Docente a Cargo:** Michael Alexis Arjel Mayerovich
+- **Repositorio Remoto:** [github.com/MiguelTroncoso/ecommerce](https://github.com/MiguelTroncoso/ecommerce)
+- **Documento PDF Oficial de Entrega:** [`docs/ES1_114-2A-F2_ecommerce.pdf`](./docs/ES1_114-2A-F2_ecommerce.pdf)
+- **Diagrama Editable:** [`docs/diagrama_clases.drawio`](./docs/diagrama_clases.drawio)
+- **Imagen del Diagrama:** [`docs/diagrama_clases.png`](./docs/diagrama_clases.png)
+- **Informe Completo:** [`docs/informe_solucion.md`](./docs/informe_solucion.md)
 
 ---
 
