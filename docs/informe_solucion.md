@@ -15,6 +15,7 @@
   1. Miguel Troncoso
   2. Alexandy Remicinthe
 - **Docente a Cargo:** Michael Alexis Arjel Mayerovich
+- **Repositorio GitHub:** [https://github.com/MiguelTroncoso/ecommerce](https://github.com/MiguelTroncoso/ecommerce)
 - **Fecha y Hora de Entrega:** Lunes 7 de septiembre de 2026, 20:30 horas
 - **Nombre de Archivo Oficial:** `ES1_114-2A-F2_ecommerce.pdf`
 
@@ -117,3 +118,5 @@ Para determinar con rigurosidad académica el tipo de relación y multiplicidad 
 ### 7. Conclusión y Veredicto Técnico
 
 El modelo de clases propuesto para **ClickAndGo** satisface con máxima rigurosidad técnica los criterios de evaluación de la Unidad 1. Se aplican los cuatro pilares fundamentales de la POO (Abstracción, Encapsulamiento, Herencia y Polimorfismo), se diferencian conceptualmente las relaciones de composición y agregación mediante el árbol de decisiones pedagógico, y se salvaguardan las reglas de negocio de la empresa, sentando una base sólida y extensible para su posterior codificación e integración.
+
+**Repositorio de Código y Evidencias:** [https://github.com/MiguelTroncoso/ecommerce](https://github.com/MiguelTroncoso/ecommerce)
