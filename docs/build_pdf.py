@@ -59,33 +59,33 @@ def build_pdf():
         'CoverTitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=22,
-        leading=26,
+        fontSize=21,
+        leading=25,
         textColor=colors.HexColor("#0D233A"),
         alignment=1,
-        spaceAfter=12
+        spaceAfter=10
     )
 
     subtitle_style = ParagraphStyle(
         'CoverSubtitle',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=12,
-        leading=16,
+        fontSize=11.5,
+        leading=15.5,
         textColor=colors.HexColor("#445566"),
         alignment=1,
-        spaceAfter=18
+        spaceAfter=14
     )
 
     h1_style = ParagraphStyle(
         'Heading1_Custom',
         parent=styles['Heading1'],
         fontName='Helvetica-Bold',
-        fontSize=14.5,
-        leading=18.5,
+        fontSize=14,
+        leading=18,
         textColor=colors.HexColor("#B22222"), # Rojo INACAP
-        spaceBefore=12,
-        spaceAfter=7,
+        spaceBefore=10,
+        spaceAfter=6,
         keepWithNext=True
     )
 
@@ -93,10 +93,10 @@ def build_pdf():
         'Heading2_Custom',
         parent=styles['Heading2'],
         fontName='Helvetica-Bold',
-        fontSize=11.5,
-        leading=15.5,
+        fontSize=11,
+        leading=15,
         textColor=colors.HexColor("#1A365D"),
-        spaceBefore=9,
+        spaceBefore=8,
         spaceAfter=4,
         keepWithNext=True
     )
@@ -105,10 +105,10 @@ def build_pdf():
         'Body_Custom',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=9.8,
-        leading=14.2,
+        fontSize=9.5,
+        leading=13.8,
         textColor=colors.HexColor("#222222"),
-        spaceAfter=6
+        spaceAfter=5
     )
 
     body_bold = ParagraphStyle(
@@ -117,19 +117,23 @@ def build_pdf():
         fontName='Helvetica-Bold'
     )
 
+    drawio_url = "https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2FMiguelTroncoso%2Fecommerce%2Fmain%2Fdocs%2Fdiagrama_clases.drawio"
+    github_url = "https://github.com/MiguelTroncoso/ecommerce"
+    file_raw_url = "https://github.com/MiguelTroncoso/ecommerce/blob/main/docs/diagrama_clases.drawio"
+
     story = []
 
     # ==========================================
     # PÁGINA 1: PORTADA E INTEGRANTES
     # ==========================================
-    story.append(Spacer(1, 20))
-    story.append(Paragraph("<b>INSTITUTO PROFESIONAL INACAP</b>", ParagraphStyle('Inst', fontName='Helvetica-Bold', fontSize=14, leading=16, textColor=colors.HexColor("#B22222"), alignment=1)))
-    story.append(Paragraph("DIRECCIÓN SECTORIAL TECNOLOGÍA APLICADA", ParagraphStyle('SubInst', fontName='Helvetica', fontSize=10, leading=13, textColor=colors.HexColor("#555555"), alignment=1)))
     story.append(Spacer(1, 15))
+    story.append(Paragraph("<b>INSTITUTO PROFESIONAL INACAP</b>", ParagraphStyle('Inst', fontName='Helvetica-Bold', fontSize=13.5, leading=16, textColor=colors.HexColor("#B22222"), alignment=1)))
+    story.append(Paragraph("DIRECCIÓN SECTORIAL TECNOLOGÍA APLICADA", ParagraphStyle('SubInst', fontName='Helvetica', fontSize=9.5, leading=12, textColor=colors.HexColor("#555555"), alignment=1)))
+    story.append(Spacer(1, 10))
 
     story.append(Paragraph("INFORME TÉCNICO DE PROPUESTA DE SOLUCIÓN", title_style))
     story.append(Paragraph("<b>EVALUACIÓN SUMATIVA N°1 — UNIDAD 1</b><br/>Modelado Orientado a Objetos y Diagrama de Clases UML", subtitle_style))
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
 
     cover_data = [
         [Paragraph("<b>Carrera:</b>", body_style), Paragraph("<b>Analista Programador</b>", body_style)],
@@ -139,7 +143,8 @@ def build_pdf():
         [Paragraph("<b>Negocio Asignado:</b>", body_style), Paragraph("<b>05: Tienda de e-commerce (ClickAndGo)</b>", body_style)],
         [Paragraph("<b>Integrantes del Equipo:</b>", body_style), Paragraph("1. <b>Miguel Troncoso</b><br/>2. <b>Alexandy Remicinthe</b>", body_style)],
         [Paragraph("<b>Docente a Cargo:</b>", body_style), Paragraph("<b>Michael Alexis Arjel Mayerovich</b>", body_style)],
-        [Paragraph("<b>Repositorio GitHub:</b>", body_style), Paragraph('<a href="https://github.com/MiguelTroncoso/ecommerce"><font color="#0969DA"><u>https://github.com/MiguelTroncoso/ecommerce</u></font></a>', body_style)],
+        [Paragraph("<b>Repositorio GitHub:</b>", body_style), Paragraph(f'<a href="{github_url}"><font color="#0969DA"><u>{github_url}</u></font></a>', body_style)],
+        [Paragraph("<b>Diagrama Draw.io (Web):</b>", body_style), Paragraph(f'<a href="{drawio_url}"><font color="#0969DA"><u>Abrir diagrama interactivo en app.diagrams.net</u></font></a>', body_style)],
         [Paragraph("<b>Plataforma de Entrega:</b>", body_style), Paragraph("Ambiente de Aprendizaje INACAP (AAI)", body_style)],
         [Paragraph("<b>Fecha y Hora de Entrega:</b>", body_style), Paragraph("Lunes 7 de septiembre de 2026, 20:30 horas", body_style)],
         [Paragraph("<b>Nombre de Archivo Oficial:</b>", body_style), Paragraph("<code>ES1_114-2A-F2_ecommerce.pdf</code>", body_style)]
@@ -150,15 +155,15 @@ def build_pdf():
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F8FAFC")),
         ('BOX', (0,0), (-1,-1), 1.5, colors.HexColor("#CBD5E1")),
         ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor("#E2E8F0")),
-        ('TOPPADDING', (0,0), (-1,-1), 5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 4.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4.5),
         ('LEFTPADDING', (0,0), (-1,-1), 12),
         ('RIGHTPADDING', (0,0), (-1,-1), 12),
     ]))
     story.append(t_cover)
     
-    story.append(Spacer(1, 20))
-    story.append(Paragraph("<b>Nota:</b> Actividad grupal de 2 integrantes correspondiente al 20% de la nota final del módulo. El modelo da estricto cumplimiento a los 6 requisitos mínimos de la ficha de evaluación y a la notación formal del estándar UML.", ParagraphStyle('NoteCov', fontName='Helvetica-Oblique', fontSize=8.5, leading=12, textColor=colors.HexColor("#64748B"), alignment=1)))
+    story.append(Spacer(1, 14))
+    story.append(Paragraph("<b>Nota:</b> Actividad grupal de 2 integrantes correspondiente al 20% de la nota final del módulo. El modelo da estricto cumplimiento a los 6 requisitos mínimos de la ficha de evaluación y a la notación formal del estándar UML.", ParagraphStyle('NoteCov', fontName='Helvetica-Oblique', fontSize=8.5, leading=11.5, textColor=colors.HexColor("#64748B"), alignment=1)))
 
     story.append(PageBreak())
 
@@ -214,13 +219,34 @@ def build_pdf():
         "rombo relleno para composición, rombo hueco para agregación y multiplicidades exactas en ambos extremos:",
         body_style
     ))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
     img_path = "/Users/migueltroncoso/ecommerce/docs/diagrama_clases.png"
     if os.path.exists(img_path):
-        story.append(RLImage(img_path, width=480, height=341))
-        story.append(Spacer(1, 5))
-        story.append(Paragraph("<b>Figura 1:</b> Diagrama de Clases UML — Caso 05: ClickAndGo (archivo editable draw.io disponible en <code>docs/diagrama_clases.drawio</code>).", ParagraphStyle('Cap', fontName='Helvetica-Oblique', fontSize=8, leading=10.5, textColor=colors.HexColor("#64748B"), alignment=1)))
+        story.append(RLImage(img_path, width=480, height=310))
+        story.append(Spacer(1, 4))
+        story.append(Paragraph("<b>Figura 1:</b> Diagrama de Clases UML — Caso 05: ClickAndGo.", ParagraphStyle('Cap', fontName='Helvetica-Oblique', fontSize=8, leading=10, textColor=colors.HexColor("#64748B"), alignment=1)))
+        story.append(Spacer(1, 4))
+
+    # Caja destacada para Draw.io interactivo
+    drawio_box_data = [
+        [Paragraph(
+            "<b>Visualización Interactiva en Draw.io:</b><br/>"
+            f"• <b>Visor Web Directo:</b> <a href=\"{drawio_url}\"><font color=\"#0969DA\"><u>Abrir diagrama en app.diagrams.net (con zoom y navegación vectorial)</u></font></a><br/>"
+            f"• <b>Archivo editable en GitHub:</b> <a href=\"{file_raw_url}\"><font color=\"#0969DA\"><u>docs/diagrama_clases.drawio</u></font></a>",
+            body_style
+        )]
+    ]
+    t_drawio = Table(drawio_box_data, colWidths=[480])
+    t_drawio.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#EFF6FF")),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#3B82F6")),
+        ('LEFTPADDING', (0,0), (-1,-1), 10),
+        ('RIGHTPADDING', (0,0), (-1,-1), 10),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(t_drawio)
 
     story.append(PageBreak())
 
@@ -343,15 +369,15 @@ def build_pdf():
     ]))
     story.append(t_eval)
 
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
     story.append(Paragraph("6. Conclusión y Veredicto Técnico", h2_style))
     concl_p = (
         "El modelo de clases propuesto para <b>ClickAndGo</b> satisface con máxima rigurosidad técnica los criterios de evaluación "
         "de la Unidad 1. Se aplican los cuatro pilares fundamentales de la POO (Abstracción, Encapsulamiento, Herencia y Polimorfismo), "
         "se diferencian conceptualmente las relaciones de composición y agregación mediante el árbol de decisiones pedagógico, "
         "y se salvaguardan las reglas de negocio de la empresa, sentando una base sólida y extensible para su posterior codificación e integración.<br/><br/>"
-        "<b>Repositorio de Código y Evidencias:</b> "
-        "<a href=\"https://github.com/MiguelTroncoso/ecommerce\"><font color=\"#0969DA\"><u>https://github.com/MiguelTroncoso/ecommerce</u></font></a>"
+        f"• <b>Repositorio GitHub:</b> <a href=\"{github_url}\"><font color=\"#0969DA\"><u>{github_url}</u></font></a><br/>"
+        f"• <b>Diagrama en Draw.io (Interactivo):</b> <a href=\"{drawio_url}\"><font color=\"#0969DA\"><u>Abrir en app.diagrams.net</u></font></a>"
     )
     story.append(Paragraph(concl_p, body_style))
 

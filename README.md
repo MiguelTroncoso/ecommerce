@@ -80,7 +80,9 @@ ClickAndGo comercializa productos bajo tres mecánicas de entrega diferenciadas 
 
 ![Diagrama de Clases UML - Caso ClickAndGo](docs/diagrama_clases.png)
 
-> **Nota:** El archivo editable para draw.io se encuentra disponible en [`docs/diagrama_clases.drawio`](docs/diagrama_clases.drawio).
+> **Visualización Interactiva en Draw.io:**
+> - 🌐 **Visor Web Directo:** [Abrir diagrama interactivo en app.diagrams.net (con zoom y navegación vectorial)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2FMiguelTroncoso%2Fecommerce%2Fmain%2Fdocs%2Fdiagrama_clases.drawio)
+> - 📁 **Archivo editable en el repositorio:** [`docs/diagrama_clases.drawio`](docs/diagrama_clases.drawio)
 
 ### Representación Estructural en Mermaid:
 

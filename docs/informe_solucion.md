@@ -33,7 +33,9 @@ A continuación se presenta el diagrama de clases del sistema **ClickAndGo**, di
 
 ![Diagrama de Clases UML - Caso ClickAndGo](./diagrama_clases.png)
 
-> **Nota de compatibilidad:** El archivo fuente editable para importar directamente en **draw.io** se encuentra respaldado en el repositorio bajo la ruta [`docs/diagrama_clases.drawio`](./diagrama_clases.drawio).
+> **Visualización Interactiva en Draw.io:**
+> - 🌐 **Visor Web Directo:** [Abrir diagrama interactivo en app.diagrams.net (con zoom y navegación vectorial)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2FMiguelTroncoso%2Fecommerce%2Fmain%2Fdocs%2Fdiagrama_clases.drawio)
+> - 📁 **Archivo editable en el repositorio:** [`docs/diagrama_clases.drawio`](./diagrama_clases.drawio)
 
 ---
 
@@ -119,4 +121,5 @@ Para determinar con rigurosidad académica el tipo de relación y multiplicidad 
 
 El modelo de clases propuesto para **ClickAndGo** satisface con máxima rigurosidad técnica los criterios de evaluación de la Unidad 1. Se aplican los cuatro pilares fundamentales de la POO (Abstracción, Encapsulamiento, Herencia y Polimorfismo), se diferencian conceptualmente las relaciones de composición y agregación mediante el árbol de decisiones pedagógico, y se salvaguardan las reglas de negocio de la empresa, sentando una base sólida y extensible para su posterior codificación e integración.
 
-**Repositorio de Código y Evidencias:** [https://github.com/MiguelTroncoso/ecommerce](https://github.com/MiguelTroncoso/ecommerce)
+**Repositorio de Código y Evidencias:** [https://github.com/MiguelTroncoso/ecommerce](https://github.com/MiguelTroncoso/ecommerce)  
+**Visualizador Interactivo Draw.io:** [Abrir en app.diagrams.net](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2FMiguelTroncoso%2Fecommerce%2Fmain%2Fdocs%2Fdiagrama_clases.drawio)
