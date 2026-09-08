@@ -354,3 +354,68 @@ class Pedido:
         self._total_flete_clp = fletes
         self._total_final_clp = subtotal + fletes
         return self._total_final_clp
+
+
+if __name__ == "__main__":
+    print("=" * 80)
+    print("  PLATAFORMA CLICKANDGO - MODELO ORIENTADO A OBJETOS (POO)")
+    print("  Evaluación Sumativa N°1 - INACAP TI3V21 (Analista Programador)")
+    print("=" * 80)
+    print("\n✓ Clases del modelo cargadas exitosamente en memoria:")
+    print("  • Cliente, Pedido, DetallePedido")
+    print("  • Producto (abstract), ProductoFisico, ProductoDigital, ProductoServicio, ProductoElectronica")
+    print("  • Trabajador (abstract), EncargadoBodega, Administrador")
+
+    print("\n" + "-" * 80)
+    print("DEMOSTRACIÓN RÁPIDA DE OPERACIÓN:")
+    print("-" * 80)
+
+    # 1. Cliente
+    cliente = Cliente("CLI-01", "Miguel Troncoso", "19.876.543-0", "RUT")
+    print(f"1. Cliente: {cliente.get_nombre()} | RUT: {cliente.get_identificador()} -> {'VÁLIDO (Módulo 11)' if cliente.validar_identificador() else 'INVÁLIDO'}")
+
+    # 2. Trabajadores y RBAC
+    bodega = EncargadoBodega("TB-01", "Juan Bodeguero", "juan@clickandgo.cl")
+    admin = Administrador("ADM-01", "María Admin", "admin@clickandgo.cl")
+    print(f"2. Roles (RBAC):")
+    print(f"   • {bodega.__class__.__name__}: puedeModificarCatalogo={bodega.puede_modificar_catalogo()} | puedeDespachar={bodega.puede_despachar()}")
+    print(f"   • {admin.__class__.__name__}: puedeModificarCatalogo={admin.puede_modificar_catalogo()} | puedeDespachar={admin.puede_despachar()}")
+
+    # 3. Productos y Polimorfismo
+    p_fisico = ProductoFisico("P-FIS", "Silla Ergonómica", precio_base_clp=95000.0, stock=5, peso_kg=12.0, volumen_m3=0.1)
+    p_digital = ProductoDigital("P-DIG", "Licencia Windows 11", precio_base_clp=35000.0, stock=20, enlace_descarga="https://cdn.clickandgo.cl/win11.iso", licencia_activacion="WIN-2026-X89", peso_archivo_mb=4500.0)
+    p_elect = ProductoElectronica("P-ELC", "Monitor 4K Importado", precio_usd=250.0, stock=3, peso_kg=4.5, volumen_m3=0.03)
+
+    tasa_dolar = 945.0
+    print(f"3. Catálogo y Precios:")
+    print(f"   • {p_fisico.get_nombre()}: ${p_fisico.calcular_precio_final():,.0f} CLP (Flete base: ${p_fisico.calcular_flete():,.0f} CLP)")
+    print(f"   • {p_digital.get_nombre()}: ${p_digital.calcular_precio_final():,.0f} CLP (Flete: $0 CLP)")
+    print(f"   • {p_elect.get_nombre()}: ${p_elect.get_precio_usd()} USD x ${tasa_dolar} = ${p_elect.calcular_precio_final(tasa_dolar):,.0f} CLP (Indicador externo)")
+
+    # 4. Pedido Multi-línea y Reglas de Negocio
+    pedido = Pedido("PED-1001", cliente)
+    pedido.agregar_linea(p_fisico, 1)
+    pedido.agregar_linea(p_digital, 1)
+    pedido.agregar_linea(p_elect, 1, tasa_dolar=tasa_dolar)
+
+    print(f"\n4. Transacción Multi-línea (Pedido {pedido.get_id()}):")
+    print(f"   • Total calculado (Productos + Fletes): ${pedido.calcular_total():,.0f} CLP")
+
+    # Regla 1: Despacho bloqueado si no está pagado
+    print(f"   • Intento de despacho previo a pago: {'PERMITIDO' if pedido.despachar(bodega) else 'BLOQUEADO (Regla: Requiere estar PAGADO)'}")
+
+    # Pago y despacho
+    pedido.registrar_pago()
+    print(f"   • Estado tras registrarPago(): {pedido.get_estado_pago()} (Stock descontado)")
+    print(f"   • Despacho por {bodega.get_nombre()}: {'DESPACHADO CON ÉXITO' if pedido.despachar(bodega) else 'BLOQUEADO'}")
+
+    # Entregas polimórficas
+    print("\n5. Resultado de Entregas Polimórficas:")
+    for res in pedido.procesar_despacho_entregas():
+        print(f"   [{res['tipo']}] {res['producto']}: {res['mensaje']}")
+
+    print("\n" + "=" * 80)
+    print("  ✓ Verificación completa ejecutada sin errores.")
+    print("  💡 Tip: También puedes ejecutar 'python3 demo.py' para la auditoría formal.")
+    print("=" * 80 + "\n")
+

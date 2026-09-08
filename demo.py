@@ -6,10 +6,26 @@ Valida los 6 requisitos mínimos de la rúbrica de evaluación.
 """
 
 from datetime import datetime
-from src.clickandgo import (
-    Cliente, Pedido, ProductoFisico, ProductoDigital,
-    ProductoServicio, ProductoElectronica, EncargadoBodega, Administrador
-)
+import os
+import sys
+
+# Asegurar resolución de importación sin importar desde qué carpeta se ejecute
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
+for p in [current_dir, parent_dir, os.path.join(current_dir, "src"), os.path.join(parent_dir, "src")]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+try:
+    from src.clickandgo import (
+        Cliente, Pedido, ProductoFisico, ProductoDigital,
+        ProductoServicio, ProductoElectronica, EncargadoBodega, Administrador
+    )
+except ModuleNotFoundError:
+    from clickandgo import (
+        Cliente, Pedido, ProductoFisico, ProductoDigital,
+        ProductoServicio, ProductoElectronica, EncargadoBodega, Administrador
+    )
 
 def run_audit_demo():
     print("=" * 80)
