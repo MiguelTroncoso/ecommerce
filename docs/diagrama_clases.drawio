@@ -70,9 +70,9 @@
           <mxGeometry x="930" y="890" width="700" height="200" as="geometry" />
         </mxCell>
 
-        <!-- RELACIONES / CONECTORES -->
+        <!-- RELACIONES Y CONECTORES -->
 
-        <!-- Asociacion: Cliente "1" --> "0..*" Pedido -->
+        <!-- Asociacion: Cliente 1 a Pedido 0..* -->
         <mxCell id="rel_cliente_pedido" value="realiza" style="endArrow=open;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeColor=#333333;strokeWidth=1.5;" edge="1" source="c_cliente" target="c_pedido" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -83,7 +83,7 @@
           <mxGeometry x="0.75" relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Composicion: Pedido "1" *-- "1..*" DetallePedido -->
+        <!-- Composicion: Pedido 1 a DetallePedido 1..* -->
         <mxCell id="rel_pedido_detalle" value="contiene" style="endArrow=none;startArrow=diamond;startFill=1;html=1;exitX=1;exitY=0.35;entryX=0;entryY=0.5;strokeColor=#333333;strokeWidth=2;" edge="1" source="c_pedido" target="c_detalle" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -94,7 +94,7 @@
           <mxGeometry x="0.7" relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Agregacion: DetallePedido "*" o-- "1" Producto -->
+        <!-- Agregacion: DetallePedido * a Producto 1 -->
         <mxCell id="rel_detalle_producto" value="referencia" style="endArrow=none;startArrow=diamond;startFill=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#333333;strokeWidth=2;" edge="1" source="c_detalle" target="c_producto" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -105,37 +105,37 @@
           <mxGeometry x="0.65" relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Herencia: Producto <|- ProductoFisico -->
+        <!-- Herencia: ProductoFisico hereda de Producto -->
         <mxCell id="rel_h_fisico" style="endArrow=block;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.2;entryY=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" source="c_pfisico" target="c_producto" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Herencia: Producto <|- ProductoDigital -->
+        <!-- Herencia: ProductoDigital hereda de Producto -->
         <mxCell id="rel_h_digital" style="endArrow=block;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" source="c_pdigital" target="c_producto" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Herencia: Producto <|- ProductoServicio -->
+        <!-- Herencia: ProductoServicio hereda de Producto -->
         <mxCell id="rel_h_servicio" style="endArrow=block;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.8;entryY=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" source="c_pservicio" target="c_producto" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Herencia: ProductoFisico <|- ProductoElectronica -->
+        <!-- Herencia: ProductoElectronica hereda de ProductoFisico -->
         <mxCell id="rel_h_elect" style="endArrow=block;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" source="c_pelectronica" target="c_pfisico" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Herencia: Trabajador <|- EncargadoBodega -->
+        <!-- Herencia: EncargadoBodega hereda de Trabajador -->
         <mxCell id="rel_h_bodega" style="endArrow=block;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.3;entryY=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" source="c_bodega" target="c_trabajador" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Herencia: Trabajador <|- Administrador -->
+        <!-- Herencia: Administrador hereda de Trabajador -->
         <mxCell id="rel_h_admin" style="endArrow=block;endFill=0;html=1;exitX=0.5;exitY=0;entryX=0.7;entryY=1;strokeColor=#333333;strokeWidth=1.5;" edge="1" source="c_admin" target="c_trabajador" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <!-- Dependencia / Uso: Pedido usa Trabajador -->
+        <!-- Dependencia: Pedido usa Trabajador -->
         <mxCell id="rel_pedido_trabajador" value="&amp;laquo;usa&amp;raquo; (despachar)" style="endArrow=open;dashed=1;html=1;exitX=0;exitY=0.8;entryX=1;entryY=0.3;strokeColor=#666666;strokeWidth=1.5;" edge="1" source="c_pedido" target="c_trabajador" parent="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
