@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titulo %}ClickAndGo - Guion de pruebas{% endblock %}
+{% block contenido %}
+
+<h1>Guion de pruebas y resultados</h1>
+<p class="intro">
+  Los 19 casos del guion de pruebas de la tienda ClickAndGo estan automatizados en
+  <code>tests/test_guion_pruebas.py</code>. Para ejecutarlos:
+</p>
+<pre class="codigo">python tests/test_guion_pruebas.py</pre>
+
+<table class="tabla">
+  <thead><tr><th>N</th><th>Que se prueba</th><th>Resultado esperado</th><th>Estado</th></tr></thead>
+  <tbody>
+    <tr><td>P01</td><td>El programa se ejecuta y muestra el menu</td><td>El programa inicia y muestra el menu principal</td><td class="ok">Cumple</td></tr>
+    <tr><td>P02</td><td>Crear: producto</td><td>El programa confirma que se guardo</td><td class="ok">Cumple</td></tr>
+    <tr><td>P03</td><td>Listar: producto</td><td>Aparece el registro recien creado</td><td class="ok">Cumple</td></tr>
+    <tr><td>P04</td><td>Modificar: producto</td><td>El listado muestra el cambio de stock</td><td class="ok">Cumple</td></tr>
+    <tr><td>P05</td><td>Los datos quedan guardados</td><td>El registro sigue ahí tras cerrar y abrir</td><td class="ok">Cumple</td></tr>
+    <tr><td>P06</td><td>Eliminar: producto</td><td>El registro ya no aparece</td><td class="ok">Cumple</td></tr>
+    <tr><td>P07</td><td>Correo o RUT correcto</td><td>Lo acepta</td><td class="ok">Cumple</td></tr>
+    <tr><td>P08</td><td>Correo incompleto</td><td>Lo rechaza con un mensaje y el programa sigue</td><td class="ok">Cumple</td></tr>
+    <tr><td>P09</td><td>Tipo Producto fisico</td><td>Se despacha por transporte y calcula flete</td><td class="ok">Cumple</td></tr>
+    <tr><td>P10</td><td>Tipo Producto digital</td><td>Entrega instantanea con link, sin despacho</td><td class="ok">Cumple</td></tr>
+    <tr><td>P11</td><td>Tipo Servicio</td><td>Se agenda para una fecha futura</td><td class="ok">Cumple</td></tr>
+    <tr><td>P12</td><td>Registrar pedido multi-linea</td><td>Queda como un solo registro de pedido</td><td class="ok">Cumple</td></tr>
+    <tr><td>P13</td><td>Ver el detalle del pedido</td><td>Se ven todas sus lineas de detalle</td><td class="ok">Cumple</td></tr>
+    <tr><td>P14</td><td>Confirmar sin stock suficiente</td><td>Se impide; el stock no cambia</td><td class="ok">Cumple</td></tr>
+    <tr><td>P15</td><td>Despachar un pedido impago</td><td>La operacion se impide</td><td class="ok">Cumple</td></tr>
+    <tr><td>P16</td><td>Precio con el dolar del dia</td><td>Usa el valor del dolar de hoy</td><td class="ok">Cumple</td></tr>
+    <tr><td>P17</td><td>Sin internet</td><td>Avisa que no pudo obtener el valor y no se cae</td><td class="ok">Cumple</td></tr>
+    <tr><td>P18</td><td>Opcion de menu que no existe</td><td>Muestra un mensaje y vuelve al menu</td><td class="ok">Cumple</td></tr>
+    <tr><td>P19</td><td>Letras donde va un numero</td><td>Muestra un mensaje y el programa no se cae</td><td class="ok">Cumple</td></tr>
+  </tbody>
+</table>
+
+<h2>Evidencia de ejecucion</h2>
+<pre class="codigo">$ python tests/test_guion_pruebas.py
+test_p01_el_programa_se_ejecuta_y_muestra_menu ... ok
+test_p02_p03_p04_p06_crud_producto ... ok
+test_p05_los_datos_quedan_guardados ... ok
+test_p07_p08_validacion_de_identificador ... ok
+test_p09_p10_p11_entrega_polimorfica ... ok
+test_p12_p13_pedido_multilinea_y_detalle ... ok
+test_p14_regla_stock_insuficiente ... ok
+test_p15_regla_pedido_impago_no_se_despacha ... ok
+test_p16_precio_con_dolar_del_dia ... ok
+test_p17_sin_internet_el_programa_no_se_cae ... ok
+test_p17_menu_avisa_sin_internet ... ok
+test_p18_opcion_de_menu_inexistente ... ok
+test_p19_letras_donde_va_un_numero ... ok
+test_tambien_bloquea_despacho_sin_permisos ... ok
+
+Ran 14 tests
+OK</pre>
+
+{% endblock %}

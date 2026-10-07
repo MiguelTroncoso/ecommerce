@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block titulo %}ClickAndGo - Recorrido del codigo{% endblock %}
+{% block contenido %}
+
+<h1>Recorrido del codigo, desde cero</h1>
+<p class="intro">
+  Esta pagina explica el proyecto a alguien que nunca lo ha visto: en que orden leer los archivos y
+  que hace cada pieza importante.
+</p>
+
+<h2>Paso 0. Estructura del repositorio</h2>
+<pre class="diagrama">
+ecommerce/
+  main.py              menu de consola (punto de entrada)
+  requirements.txt     dependencias (requests, flask, waitress)
+  README.md            guia de instalacion, seguridad y uso de IA
+  model/               clases del negocio, una por archivo
+  dao/                 acceso a datos SQLite
+  servicios/           validacion de entradas e indicador del dolar
+  tests/               guion de pruebas P01 a P19 automatizado
+  web/                 sitio de documentacion y consola en vivo
+  docs/                informes PDF, diagrama UML y evidencias
+  datos/               base de datos SQLite (se crea sola)
+</pre>
+
+<h2>Paso 1. El modelo: un dato con validacion obligatoria</h2>
+<p>
+  El atributo <code>identificador</code> del cliente tiene <code>property</code> y validacion en el
+  <em>setter</em>. Si el RUT no cumple el Modulo 11 o el correo esta mal escrito, el objeto ni
+  siquiera se construye.
+</p>
+<pre class="codigo">{% raw %}@identificador.setter
+def identificador(self, valor: str) -> None:
+    valor = str(valor).strip()
+    if self._tipo_identificador == "EMAIL":
+        if not validar_email(valor):
+            raise IdentificadorInvalidoError(
+                f"El correo '{valor}' no tiene un formato valido."
+            )
+    else:
+        if not validar_rut(valor):
+            raise IdentificadorInvalidoError(
+                f"El RUT '{valor}' no supera la validacion Modulo 11."
+            )
+    self._identificador = valor{% endraw %}</pre>
+
+<h2>Paso 2. Herencia y polimorfismo</h2>
+<p>
+  Los tres subtipos heredan de <code>Producto</code> con <code>super().__init__()</code> y sobrescriben
+  <code>procesar_entrega()</code>. El pedido recorre sus lineas sin preguntar de que tipo son: cada
+  objeto sabe como se entrega.
+</p>
+<pre class="codigo">{% raw %}class ProductoDigital(Producto):
+    def procesar_entrega(self, detalle) -> dict:
+        return {
+            "tipo": "DESCARGA_DIGITAL",
+            "flete_calculado": 0.0,
+            "enlace": self._enlace_descarga,
+            "mensaje": "Entrega inmediata sin despacho (flete $0).",
+        }
+
+# En Pedido, el polimorfismo ocurre sin un solo if sobre el tipo:
+def procesar_despacho_entregas(self) -> list:
+    return [d.producto.procesar_entrega(d) for d in self._detalles]{% endraw %}</pre>
+
+<h2>Paso 3. Las dos reglas del negocio como excepciones propias</h2>
+<pre class="codigo">{% raw %}def confirmar_pedido(self) -> bool:
+    ...
+    for detalle in self._detalles:
+        producto = detalle.producto
+        if not producto.tiene_stock_suficiente(detalle.cantidad):
+            raise StockInsuficienteError(
+                producto.nombre, detalle.cantidad, producto.stock
+            )
+    return True
+
+def despachar(self, operador: Trabajador) -> bool:
+    if not operador.puede_despachar():
+        raise SinPermisoError("despachar pedidos", operador.rol)
+    if self._estado_pago != "PAGADO":
+        raise PedidoNoPagadoError(self._id_pedido, self._estado_pago)
+    self._estado_entrega = "DESPACHADO"
+    return True{% endraw %}</pre>
+<p>
+  En <code>main.py</code> esas excepciones se capturan de forma especifica y el menu continua
+  funcionando: <code>except ClickAndGoError as error: print(...)</code>.
+</p>
+
+<h2>Paso 4. Persistencia con DAO y consultas parametrizadas</h2>
+<p>
+  El pedido y sus lineas de detalle se guardan en una sola transaccion SQL. Ese es el requisito de
+  la transaccion multi-linea.
+</p>
+<pre class="codigo">{% raw %}with self._bd.conectar() as conexion:
+    conexion.execute(
+        "INSERT INTO pedidos (id_pedido, id_cliente, ...) "
+        "VALUES (:id_pedido, :id_cliente, ...)",
+        pedido.to_dict(),
+    )
+    for detalle in pedido.detalles:
+        conexion.execute(
+            "INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, "
+            "precio_unitario_congelado) VALUES (:id_pedido, :id_producto, "
+            ":cantidad, :precio)",
+            {...},
+        )
+    conexion.commit(){% endraw %}</pre>
+
+<h2>Paso 5. Consumo de la API externa</h2>
+<pre class="codigo">{% raw %}def obtener_valor_dolar(self) -> ValorDolar:
+    try:
+        respuesta = requests.get(self._url, timeout=self._timeout)
+        respuesta.raise_for_status()
+        serie = respuesta.json().get("serie") or []
+        ultimo = serie[0]
+        return ValorDolar(float(ultimo["valor"]), str(ultimo["fecha"])[:10],
+                          "mindicador.cl (API en linea)")
+    except (requests.RequestException, ValueError, KeyError) as error:
+        raise IndicadorNoDisponibleError(
+            f"No fue posible obtener el dolar: {error}"
+        ) from error{% endraw %}</pre>
+
+<h2>Paso 6. Recorrido del menu principal</h2>
+<table class="tabla">
+  <thead><tr><th>Opcion</th><th>Que permite demostrar</th></tr></thead>
+  <tbody>
+    <tr><td>1. Clientes</td><td>Validacion obligatoria de RUT o correo y CRUD</td></tr>
+    <tr><td>2. Productos</td><td>CRUD completo del catalogo y los cuatro subtipos</td></tr>
+    <tr><td>3. Pedidos</td><td>Transaccion multi-linea, detalle, reglas de negocio y entrega polimorfica</td></tr>
+    <tr><td>4. Dolar del dia</td><td>Precio con indicador externo y continuidad si la API falla</td></tr>
+    <tr><td>5. Trabajadores</td><td>Permisos distintos por rol (RBAC)</td></tr>
+    <tr><td>6. Iniciar sesion</td><td>Autenticacion con contrasena cifrada</td></tr>
+    <tr><td>7. Datos de demostracion</td><td>Carga de un catalogo de ejemplo</td></tr>
+  </tbody>
+</table>
+
+<h2>Ejecutarlo en tu computador</h2>
+<pre class="codigo">git clone https://github.com/MiguelTroncoso/ecommerce.git
+cd ecommerce
+python -m venv .venv
+source .venv/bin/activate        # En Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python main.py</pre>
+
+{% endblock %}

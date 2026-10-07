@@ -1,0 +1,3 @@
+# Dependencias para ejecutar el sistema de consola (main.py).
+# La libreria oficial requests se usa para consumir la API mindicador.cl.
+requests>=2.31.0,<3.0.0

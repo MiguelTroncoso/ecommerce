@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block titulo %}ClickAndGo - Demo en vivo{% endblock %}
+{% block contenido %}
+
+<h1>Demo en vivo del sistema</h1>
+<p class="intro">
+  Esta consola ejecuta el mismo <code>main.py</code> del repositorio, en un entorno aislado para tu
+  sesion. Escribe el numero de la opcion y presiona Enter. Puedes usar los mismos datos del guion de
+  pruebas.
+</p>
+
+<div class="aviso">
+  <strong>Guia rapida:</strong> escribe <code>2</code> + Enter para entrar al catalogo,
+  <code>1</code> para crear un producto, o <code>3</code> para trabajar con pedidos.
+  Para salir, escribe <code>0</code>.
+</div>
+
+<div class="terminal">
+  <div class="terminal-barra">
+    <span class="punto rojo"></span><span class="punto ambar"></span><span class="punto verde"></span>
+    <span class="terminal-titulo">python main.py</span>
+    <button id="reiniciar" class="boton-mini">Reiniciar sesion</button>
+  </div>
+  <pre id="pantalla" class="terminal-pantalla"></pre>
+  <form id="formulario" class="terminal-entrada" autocomplete="off">
+    <span class="indicador">&gt;</span>
+    <input id="entrada" type="text" placeholder="Escribe una opcion y presiona Enter" autofocus>
+    <button type="submit">Enviar</button>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const pantalla = document.getElementById('pantalla');
+const entrada = document.getElementById('entrada');
+const formulario = document.getElementById('formulario');
+const botonReiniciar = document.getElementById('reiniciar');
+let sesionId = null;
+let temporizador = null;
+
+function escribirTexto(texto) {
+  if (!texto) return;
+  pantalla.textContent += texto.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  pantalla.scrollTop = pantalla.scrollHeight;
+}
+
+async function nuevaSesion() {
+  pantalla.textContent = 'Iniciando el sistema...\n';
+  const respuesta = await fetch('/api/consola', { method: 'POST' });
+  const datos = await respuesta.json();
+  sesionId = datos.id;
+  pantalla.textContent = '';
+  escribirTexto(datos.salida);
+  if (temporizador) clearInterval(temporizador);
+  temporizador = setInterval(leerSalida, 700);
+  entrada.focus();
+}
+
+async function leerSalida() {
+  if (!sesionId) return;
+  try {
+    const respuesta = await fetch('/api/consola/' + sesionId);
+    const datos = await respuesta.json();
+    escribirTexto(datos.salida);
+    if (!datos.activa) {
+      clearInterval(temporizador);
+      escribirTexto('\n[La sesion termino. Presiona "Reiniciar sesion" para volver a empezar.]\n');
+    }
+  } catch (error) { /* reintenta en el proximo ciclo */ }
+}
+
+formulario.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  if (!sesionId) return;
+  const texto = entrada.value;
+  entrada.value = '';
+  const respuesta = await fetch('/api/consola/' + sesionId + '/entrada', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ texto: texto })
+  });
+  const datos = await respuesta.json();
+  escribirTexto(datos.salida);
+  entrada.focus();
+});
+
+botonReiniciar.addEventListener('click', async () => {
+  if (sesionId) { fetch('/api/consola/' + sesionId, { method: 'DELETE' }); }
+  await nuevaSesion();
+});
+
+nuevaSesion();
+</script>
+{% endblock %}

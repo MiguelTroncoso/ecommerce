@@ -1,5 +1,14 @@
-.venv/
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
+venv/
+.env
 .DS_Store
-node_modules/
+
+# Bases de datos generadas en tiempo de ejecucion
+datos/*.db
+datos/*.db-journal
+datos/dolar_respaldo.json
+
+# Sesiones temporales de la consola web
+web/sesiones/

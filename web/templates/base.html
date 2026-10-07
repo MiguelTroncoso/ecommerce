@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}ClickAndGo - Proyecto E-commerce{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+</head>
+<body>
+<header class="cabecera">
+  <div class="contenedor">
+    <div class="marca">
+      <span class="logo">ClickAndGo</span>
+      <span class="lema">Plataforma e-commerce | INACAP TI3V21</span>
+    </div>
+    <nav class="menu">
+      <a href="/" class="{{ 'activo' if activo == 'inicio' }}">Inicio</a>
+      <a href="/arquitectura" class="{{ 'activo' if activo == 'arquitectura' }}">Arquitectura</a>
+      <a href="/codigo" class="{{ 'activo' if activo == 'codigo' }}">Codigo</a>
+      <a href="/pruebas" class="{{ 'activo' if activo == 'pruebas' }}">Pruebas</a>
+      <a href="/demo" class="{{ 'activo' if activo == 'demo' }}">Demo en vivo</a>
+      <a href="/descargas" class="{{ 'activo' if activo == 'descargas' }}">Descargas</a>
+    </nav>
+  </div>
+</header>
+
+<main class="contenedor">
+{% block contenido %}{% endblock %}
+</main>
+
+<footer class="pie">
+  <div class="contenedor">
+    <p><strong>ClickAndGo</strong> - Evaluacion Sumativa N2 - Programacion Orientada a Objeto Seguro (TI3V21)</p>
+    <p>Miguel Troncoso y Alexandy Remicinthe | Seccion 114-2A-F2 | INACAP Puente Alto</p>
+  </div>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

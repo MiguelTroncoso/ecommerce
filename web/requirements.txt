@@ -1,0 +1,5 @@
+# Dependencias adicionales para publicar el sitio de documentacion y la
+# consola en vivo. El sistema de consola solo necesita ../requirements.txt.
+-r ../requirements.txt
+Flask>=3.0.0,<4.0.0
+waitress>=3.0.0,<4.0.0

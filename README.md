@@ -1,232 +1,373 @@
-# 🛒 ClickAndGo - Plataforma E-Commerce (Modelado POO y UML)
+# ClickAndGo - Sistema de gestion E-commerce
 
-[![INACAP](https://img.shields.io/badge/INACAP-Analista%20Programador-CC0000?style=for-the-badge&logo=academic-tree&logoColor=white)](https://www.inacap.cl/)
-[![UML 2.5](https://img.shields.io/badge/UML-2.5%20Standard-007ACC?style=for-the-badge&logo=diagramsdotnet&logoColor=white)](https://app.diagrams.net/)
-[![POO 4 Pilares](https://img.shields.io/badge/POO-4%20Pilares-22C55E?style=for-the-badge)](https://es.wikipedia.org/wiki/Programaci%C3%B3n_orientada_a_objetos)
-[![Status](https://img.shields.io/badge/Evaluaci%C3%B3n-100%25%20Cumplido-brightgreen?style=for-the-badge)]()
+[![INACAP](https://img.shields.io/badge/INACAP-TI3V21-CC0000?style=flat-square)](https://www.inacap.cl/)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-Persistencia-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Demo](https://img.shields.io/badge/Demo-inacap.superflash.site-1C4E80?style=flat-square)](https://inacap.superflash.site)
 
-Proyecto evaluado para la asignatura de **Programación Orientada a Objetos (POO)** en INACAP.  
-Plataforma e-commerce **ClickAndGo** diseñada con entrega polimórfica según tipo de producto, control de acceso basado en roles (RBAC), validación de clientes en Chile (RUT Módulo 11 y Email), transacciones multi-línea, reglas de negocio de integridad y conversión de divisas para productos importados.
-
----
-
-## 📌 1. Ficha del Proyecto
-- **Institución:** Instituto Profesional INACAP
-- **Carrera:** Analista Programador
-- **Asignatura:** Programación Orientada a Objetos (Código: TI3V21 — PRIMAVERA 2026)
-- **Sección:** 114-2A-F2
-- **Caso Asignado:** 05: Tienda de e-commerce (**ClickAndGo**)
-- **Integrantes del Equipo:**
-  1. **Miguel Troncoso**
-  2. **Alexandy Remicinthe**
-- **Docente a Cargo:** Michael Alexis Arjel Mayerovich
-- **Fecha y Hora de Entrega:** Lunes 7 de septiembre de 2026, 20:30 horas
-- **Nombre de Archivo Oficial:** `ES1_114-2A-F2_ecommerce.pdf`
-- **Plataforma de Entrega:** Ambiente de Aprendizaje INACAP (AAI)
-- **Documento PDF Oficial de Entrega:** [`docs/ES1_114-2A-F2_ecommerce.pdf`](./docs/ES1_114-2A-F2_ecommerce.pdf)
-- **Diagrama Editable (draw.io):** [`docs/diagrama_clases.drawio`](./docs/diagrama_clases.drawio)
-- **Imagen del Diagrama:** [`docs/diagrama_clases.png`](./docs/diagrama_clases.png)
-- **Informe Técnico Completo:** [`docs/informe_solucion.md`](./docs/informe_solucion.md)
+Sistema desarrollado para la asignatura **Programacion Orientada a Objeto Seguro (TI3V21)**
+de INACAP, **Evaluacion Sumativa N2** (Unidades 2 y 3: software orientado a objetos,
+persistencia y seguridad en Python).
 
 ---
 
-## 🎯 2. Caso de Negocio: ClickAndGo
+## 1. Integrantes y negocio
 
-ClickAndGo comercializa productos bajo tres mecánicas de entrega diferenciadas en un mismo pedido:
-1. **Físicos:** Despacho tradicional por transporte terrestre; cálculo dinámico de flete en función del peso y volumen.
-2. **Digitales:** Licencias de software y e-books; entrega inmediata vía enlace seguro de descarga sin costo de transporte ($0 flete).
-3. **Servicios:** Instalaciones a domicilio y soporte técnico; agendamiento para fecha y hora futura con técnico asignado.
-4. **Electrónica (Importados):** Productos físicos cotizados en USD con conversión a CLP según tipo de cambio diario (indicador externo).
+| Dato | Valor |
+| :--- | :--- |
+| Institucion | Instituto Profesional INACAP, Sede Puente Alto |
+| Carrera | Ingenieria Informatica |
+| Asignatura | Programacion Orientada a Objeto Seguro - TI3V21 (Primavera 2026) |
+| Seccion | 114-2A-F2 |
+| Docente | Michael Arjel |
+| Caso asignado | 05 - Tienda de e-commerce: **ClickAndGo** |
+| Integrantes | **Miguel Troncoso** y **Alexandy Remicinthe** |
+| Entrega | Miercoles 7 de octubre de 2026, 19:50 hrs |
+| Repositorio | https://github.com/MiguelTroncoso/ecommerce |
+| Demostracion en linea | https://inacap.superflash.site |
 
-### Roles Operativos (RBAC)
-- **Encargado de Bodega:** Prepara y despacha pedidos (`puedeDespachar() == true`). **Regla estricta:** Tiene prohibido por diseño modificar precios o alterar el catálogo (`puedeModificarCatalogo() == false`).
-- **Administrador:** Control total de catálogo (`puedeModificarCatalogo() == true`) y autorización de despacho (`puedeDespachar() == true`).
+### El negocio
 
-### Reglas de Integridad y Validación
-- **Validación de Clientes:** RUT chileno (algoritmo Módulo 11) o Email sintáctico válido antes de procesar pedidos.
-- **Transacción Multi-línea:** Un pedido agrupa múltiples líneas de detalle (`DetallePedido`), congelando cantidad y precio unitario pactado al momento de la compra.
-- **Control de Stock:** Se bloquea la confirmación de la orden si el stock es insuficiente en cualquiera de las líneas.
-- **Bloqueo de Despacho:** Un pedido no puede ser despachado si su estado de pago no es `PAGADO` o si el operador carece de permisos.
+**ClickAndGo** vende tres mecanicas de entrega distintas dentro de un mismo pedido:
+
+1. **Productos fisicos**: se despachan por transporte terrestre y pagan flete calculado por peso,
+   volumen y distancia.
+2. **Productos digitales**: se entregan al instante con un enlace de descarga y una licencia, sin
+   costo de despacho.
+3. **Servicios**: se agendan para una fecha y hora futura en la direccion del cliente.
+4. **Electronica importada**: producto fisico cotizado en dolares, cuyo precio en pesos depende del
+   valor del dolar observado del dia (indicador externo).
+
+### Roles operativos (RBAC)
+
+| Rol | Modificar catalogo | Despachar pedidos |
+| :--- | :---: | :---: |
+| `Administrador` | Si | Si |
+| `EncargadoBodega` | **No** | Si |
 
 ---
 
-## 📊 3. Matriz de Cumplimiento de los 6 Requisitos de la Rúbrica INACAP
+## 2. Como instalar y ejecutar
 
-| # | Requisito de la Ficha | Clases y Miembros Responsables | Demostración de Cumplimiento |
-| :-: | :--- | :--- | :--- |
-| **1** | **Tres subtipos con polimorfismo** | `ProductoFisico`<br>`ProductoDigital`<br>`ProductoServicio` | Implementan `procesarEntrega()` de forma polimórfica: flete logístico, emisión de link/licencia o agendamiento técnico. |
-| **2** | **Dos trabajadores con permisos distintos** | `EncargadoBodega`<br>`Administrador` | `EncargadoBodega` solo despacha (`puedeModificarCatalogo = false`); `Administrador` gestiona precios y catálogo (`puedeModificarCatalogo = true`). |
-| **3** | **Al menos un dato con validación obligatoria** | `Cliente.validarIdentificador()` | Valida algoritmo Módulo 11 (RUT chileno) o formato de correo electrónico antes de aceptar cualquier orden. |
-| **4** | **Transacción con líneas de detalle** | `Pedido` [Composición] `DetallePedido` | Relación multi-línea (`1` a `1..*`), congelando cantidad y precio unitario pactado al momento de la transacción. |
-| **5** | **Dos reglas que impidan una operación** | • `confirmarPedido()`<br>• `despachar(operador)` | • **Regla 1:** Bloquea confirmación si no hay stock suficiente.<br>• **Regla 2:** Bloquea despacho si el pedido no está PAGADO o si el operador no tiene permisos. |
-| **6** | **Precio dependiente de indicador externo** | `ProductoElectronica.calcularPrecioFinal()` | Cotiza el costo base en USD y lo convierte a pesos chilenos multiplicando por el valor del dólar del día. |
+Requisitos: **Python 3.11 o superior**. No se necesita instalar ni configurar ninguna base de
+datos: el programa crea el archivo SQLite y sus tablas la primera vez que se ejecuta.
 
----
+```bash
+git clone https://github.com/MiguelTroncoso/ecommerce.git
+cd ecommerce
 
-## 🧠 4. Justificación Teórica de POO
+# 1. Crear y activar un entorno virtual
+python -m venv .venv
+source .venv/bin/activate          # En Windows: .venv\Scripts\activate
 
-| Pilar POO | Aplicación en ClickAndGo | Beneficio de Diseño |
+# 2. Instalar dependencias
+pip install -r requirements.txt
+
+# 3. Ejecutar el programa
+python main.py
+```
+
+Al iniciar aparece el menu principal:
+
+```
+==============================================================================
+  MENU PRINCIPAL
+==============================================================================
+  1. Gestionar clientes
+  2. Gestionar productos (catalogo)
+  3. Gestionar pedidos (transacciones)
+  4. Calcular precio con el dolar del dia (mindicador.cl)
+  5. Ver trabajadores y permisos (RBAC)
+  6. Iniciar sesion / cambiar operador
+  7. Cargar datos de demostracion
+  0. Salir
+```
+
+### Credenciales de demostracion
+
+| Rol | Usuario | Contrasena |
 | :--- | :--- | :--- |
-| **Abstracción** | Clase base abstracta `Producto` (`idProducto`, `nombre`, `precioBaseCLP`, `stock`, `procesarEntrega()`, `calcularPrecioFinal()`). | Desacopla las operaciones generales del catálogo de las peculiaridades de cada producto. |
-| **Herencia** | `ProductoFisico`, `ProductoDigital` y `ProductoServicio` especializan `Producto`. `ProductoElectronica` especializa `ProductoFisico`. `EncargadoBodega` y `Administrador` especializan `Trabajador`. | Reutilización de código y jerarquías semánticas claras evitando duplicación. |
-| **Polimorfismo** | El método `procesarEntrega()` resuelve dinámicamente según el producto: flete courier, clave/link o agenda técnica. | El `Pedido` procesa entregas sin acoplarse a clases concretas (Principio Abierto/Cerrado). |
-| **Encapsulamiento** | Atributos privados (`-`) y protegidos (`#`) con validaciones de invariantes de negocio (stock, pagos y permisos). | Protege el estado interno del sistema previniendo mutaciones inconsistentes. |
-| **Composición** | `Pedido` se compone de `DetallePedido` (`1` a `1..*`). Si el pedido se destruye, sus líneas de detalle se destruyen con él. | Relación de ciclo de vida fuerte (Composición UML `◆`). |
-| **Agregación** | `DetallePedido` referencia a `Producto` (`*` a `1`). Si se elimina el detalle, el producto continúa intacto en inventario. | Relación de ciclo de vida independiente (Agregación UML `◇`). |
+| Administrador | `Maria Gonzalez` | `admin1234` |
+| Encargado de bodega | `Juan Perez` | `bodega1234` |
 
----
+La sesion comienza como **Administrador** para facilitar la demostracion; desde la opcion 6 se puede
+cambiar de operador y comprobar que el encargado de bodega **no** puede modificar el catalogo.
 
-## 📐 5. Diagrama de Clases UML
+### Otros comandos utiles
 
-![Diagrama de Clases UML - Caso ClickAndGo](docs/diagrama_clases.png)
-
-> **Visualización Interactiva en Draw.io:**
-> - 🌐 **Visor Web Directo:** [Abrir diagrama interactivo en app.diagrams.net (con zoom y navegación vectorial)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2FMiguelTroncoso%2Fecommerce%2Fmain%2Fdocs%2Fdiagrama_clases.drawio)
-> - 📁 **Archivo editable en el repositorio:** [`docs/diagrama_clases.drawio`](docs/diagrama_clases.drawio)
-
-### Representación Estructural en Mermaid:
-
-```mermaid
-classDiagram
-    class Cliente {
-        -String idCliente
-        -String nombre
-        -String identificador
-        -String tipoIdentificador
-        +validarIdentificador() bool
-        +getIdentificador() String
-        +getNombre() String
-    }
-
-    class Pedido {
-        -String idPedido
-        -DateTime fechaCreacion
-        -String estadoPago
-        -String estadoEntrega
-        -float totalFleteCLP
-        -float totalFinalCLP
-        +agregarLinea(producto: Producto, cantidad: int) bool
-        +confirmarPedido() bool
-        +registrarPago() void
-        +despachar(operador: Trabajador) bool
-        +procesarDespachoEntregas() void
-        +calcularTotal() float
-    }
-
-    class DetallePedido {
-        -int cantidad
-        -float precioUnitarioCongelado
-        +calcularSubtotal() float
-        +getProducto() Producto
-        +getCantidad() int
-    }
-
-    class Producto {
-        <<abstract>>
-        #String idProducto
-        #String nombre
-        #float precioBaseCLP
-        #int stock
-        +procesarEntrega(detalle: DetallePedido)* void
-        +calcularPrecioFinal(indicadorDolar: float)* float
-        +descontarStock(cantidad: int) bool
-        +tieneStockSuficiente(cantidad: int) bool
-        +getStock() int
-        +getNombre() String
-    }
-
-    class ProductoFisico {
-        -float pesoKg
-        -float volumenM3
-        -float tarifaFleteBase
-        +calcularFlete(distanciaKm: float) float
-        +procesarEntrega(detalle: DetallePedido) void
-        +calcularPrecioFinal(indicadorDolar: float) float
-    }
-
-    class ProductoElectronica {
-        -float precioUSD
-        -int garantiaMeses
-        +calcularPrecioFinal(indicadorDolar: float) float
-        +getPrecioUSD() float
-    }
-
-    class ProductoDigital {
-        -String enlaceDescarga
-        -String licenciaActivacion
-        -float pesoArchivoMB
-        +procesarEntrega(detalle: DetallePedido) void
-        +calcularPrecioFinal(indicadorDolar: float) float
-        +emitirLicencia() String
-    }
-
-    class ProductoServicio {
-        -DateTime fechaAgendada
-        -String direccionVisita
-        -int duracionEstimadaHoras
-        +procesarEntrega(detalle: DetallePedido) void
-        +calcularPrecioFinal(indicadorDolar: float) float
-        +agendarFecha(fecha: DateTime) bool
-    }
-
-    class Trabajador {
-        <<abstract>>
-        #String idTrabajador
-        #String nombre
-        #String correo
-        +puedeModificarCatalogo()* bool
-        +puedeDespachar()* bool
-        +getNombre() String
-    }
-
-    class EncargadoBodega {
-        -String zonaBodegaAsignada
-        +puedeModificarCatalogo() bool
-        +puedeDespachar() bool
-        +registrarPreparacion(pedido: Pedido) void
-    }
-
-    class Administrador {
-        -int nivelAcceso
-        +puedeModificarCatalogo() bool
-        +puedeDespachar() bool
-        +actualizarPrecio(p: Producto, precio: float) void
-        +registrarNuevoProducto(p: Producto) void
-    }
-
-    Cliente "1" --> "0..*" Pedido : realiza
-    Pedido "1" *-- "1..*" DetallePedido : contiene
-    DetallePedido "*" o-- "1" Producto : referencia
-    Producto <|-- ProductoFisico
-    Producto <|-- ProductoDigital
-    Producto <|-- ProductoServicio
-    ProductoFisico <|-- ProductoElectronica
-    Trabajador <|-- EncargadoBodega
-    Trabajador <|-- Administrador
-    Pedido ..> Trabajador : «usa» (despachar)
+```bash
+python demo.py                       # Demostracion automatica de los 6 requisitos
+python tests/test_guion_pruebas.py   # Guion de pruebas P01 a P19
 ```
 
 ---
 
-## 📂 6. Estructura de Entregables del Repositorio
+## 3. Arquitectura del proyecto
 
-```text
+```
 ecommerce/
-├── README.md                          # Presentación y resumen de auditoría
-├── docs/
-│   ├── ES1_114-2A-F2_ecommerce.pdf    # PDF oficial para entrega en AAI INACAP
-│   ├── informe_solucion.md            # Informe técnico en Markdown
-│   ├── diagrama_clases.drawio         # Archivo vectorial editable en draw.io
-│   └── diagrama_clases.png            # Render de alta definición del diagrama UML
-└── src/ (Opcional - Prototipo POO)    # Implementación demostrativa en Python
+  main.py                 Menu de consola (punto de entrada)
+  demo.py                 Demostracion automatica de la rubrica
+  requirements.txt        Dependencias del sistema de consola
+  model/                  Clases del negocio, una por archivo
+  dao/                    Persistencia SQLite con consultas parametrizadas
+  servicios/              Validacion de entradas y API mindicador.cl
+  tests/                  Guion de pruebas automatizado
+  web/                    Sitio de documentacion y consola en vivo (subdominio)
+  docs/                   Informes PDF, diagrama UML y evidencias
+  datos/                  Base de datos SQLite (se genera en tiempo de ejecucion)
+```
+
+### Modelo (`model/`)
+
+| Archivo | Clase | Responsabilidad |
+| :--- | :--- | :--- |
+| `cliente.py` | `Cliente` | Identidad del comprador y validacion obligatoria de RUT/Email |
+| `producto.py` | `Producto` (ABC) | Contrato del catalogo y del inventario |
+| `producto_fisico.py` | `ProductoFisico` | Despacho por transporte y calculo de flete |
+| `producto_electronica.py` | `ProductoElectronica` | Importado en USD; hereda de `ProductoFisico` |
+| `producto_digital.py` | `ProductoDigital` | Entrega instantanea con enlace y licencia |
+| `producto_servicio.py` | `ProductoServicio` | Agenda una visita tecnica futura |
+| `detalle_pedido.py` | `DetallePedido` | Linea de la transaccion con precio congelado |
+| `pedido.py` | `Pedido` | Transaccion y reglas de negocio |
+| `trabajador.py` | `Trabajador` (ABC) | Personal, autenticacion y permisos |
+| `encargado_bodega.py` | `EncargadoBodega` | Despacha, no modifica catalogo |
+| `administrador.py` | `Administrador` | Control total del catalogo |
+| `excepciones.py` | Excepciones | Una excepcion propia por cada regla de negocio |
+
+Los subtipos heredan con `super().__init__()` y sobrescriben `procesar_entrega()`; los atributos son
+privados y se exponen con `property`, validando en el *setter*.
+
+### Persistencia (`dao/`)
+
+| Archivo | Contenido |
+| :--- | :--- |
+| `conexion.py` | Conexion SQLite, creacion automatica del esquema y ejecucion parametrizada |
+| `cliente_dao.py` | CRUD de clientes |
+| `producto_dao.py` | CRUD del catalogo y reconstruccion polimorfica de cada subtipo |
+| `pedido_dao.py` | Insercion atomica del pedido con sus lineas de detalle |
+| `trabajador_dao.py` | Usuarios, roles y autenticacion |
+
+Tablas: `trabajadores`, `clientes`, `productos`, `pedidos`, `detalle_pedido` y `configuracion`.
+Todas se crean al iniciar el programa (`conexion.crear_tablas()`).
+
+### Servicios (`servicios/`)
+
+* `validador.py`: validacion de tipo, formato y rango de **todas** las entradas del usuario.
+* `indicador_dolar.py`: consumo de `https://mindicador.cl/api/dolar` con `requests` y `timeout=5`,
+  con respaldo local del ultimo valor conocido.
+* `inicializacion.py`: creacion del esquema y carga de datos iniciales.
+
+---
+
+## 4. Decisiones de seguridad
+
+### 4.1 Inyeccion SQL
+
+**Riesgo:** si el texto que escribe el usuario se concatena dentro de una sentencia SQL, un valor
+como `'; DROP TABLE productos; --` podria alterar la base de datos.
+
+**Decision:** absolutamente todas las consultas usan **parametros enlazados** (`?` o `:nombre`).
+Nunca se construye SQL con concatenacion ni con f-strings. Los nombres de columna son fijos y
+definidos por el programador, por lo que tampoco son manipulables.
+
+```python
+# dao/cliente_dao.py
+self._bd.consultar_uno(
+    "SELECT * FROM clientes WHERE id_cliente = :id",
+    {"id": id_cliente},
+)
+```
+
+La conexion ademas activa `PRAGMA foreign_keys = ON` para que las claves foraneas se respeten y el
+pedido no pueda quedar con lineas huerfanas.
+
+### 4.2 Validacion de entradas
+
+**Decision:** cada dato se valida **antes de usarse**, por tipo, formato y rango.
+
+* En el modelo, los *setters* validan y lanzan la excepcion correspondiente:
+  `Cliente.identificador` (RUT Modulo 11 o correo), `Producto.stock` (entero no negativo),
+  `Producto.precio_base_clp` (no negativo), `ProductoServicio.fecha_agendada` (fecha futura), etc.
+* En la consola, `servicios/validador.py` pide el dato en un bucle: si es invalido muestra el
+  mensaje y vuelve a preguntar, sin detener el programa (casos P08 y P19 del guion de pruebas).
+
+```python
+def pedir_entero(mensaje, leer_entrada=input, minimo=None, maximo=None) -> int:
+    while True:
+        try:
+            return validar_entero(leer_entrada(f"{mensaje}: "), minimo, maximo)
+        except DatoInvalidoError as error:
+            print(f"  [!] {error} Intente nuevamente.")
+```
+
+### 4.3 Autenticacion y permisos (RBAC)
+
+**Decision:** las contrasenas se guardan con **PBKDF2-HMAC-SHA256**, 120.000 iteraciones y un *salt*
+aleatorio por usuario (`os.urandom(16)`); la comparacion usa `hmac.compare_digest` para evitar
+ataques de temporizacion. Los permisos se resuelven por polimorfismo
+(`puede_modificar_catalogo()`, `puede_despachar()`) y una accion no autorizada lanza
+`SinPermisoError`.
+
+### 4.4 Manejo de errores y excepciones propias
+
+**Decision:** cada regla de negocio que impide una operacion tiene su **excepcion propia**, se lanza
+desde el metodo que corresponde y se captura de forma **especifica** en `main.py`:
+
+| Excepcion | Regla que protege |
+| :--- | :--- |
+| `StockInsuficienteError` | Regla 1: no confirmar un pedido sin stock |
+| `PedidoNoPagadoError` | Regla 2: no despachar un pedido impago |
+| `SinPermisoError` | RBAC: el rol no tiene autorizacion |
+| `IdentificadorInvalidoError` | RUT o correo invalido |
+| `IndicadorNoDisponibleError` | La API externa no responde |
+| `DatoInvalidoError` | Entrada con tipo, formato o rango incorrecto |
+
+### 4.5 Consumo de servicios externos
+
+**Decision:** la consulta a `mindicador.cl` usa la libreria oficial `requests` con
+`timeout=5`, valida el codigo HTTP con `raise_for_status()`, valida que la respuesta traiga la serie
+del dolar y guarda el ultimo valor conocido en `datos/dolar_respaldo.json`. Si la API falla, el
+sistema informa el problema y sigue funcionando con el ultimo valor (caso P17).
+
+---
+
+## 5. Uso de herramientas de IA: que se adopto, que se modifico y que se descarto
+
+### 5.1 Ejemplo concreto adoptado
+
+**Sugerencia de la IA:** usar `sqlite3.Row` como `row_factory` y reemplazar los accesos por indice
+(`fila[0]`, `fila[3]`) por accesos por nombre de columna.
+
+**Decision: ADOPTADO.** El codigo original del equipo usaba indices numericos, lo que volvia muy
+fragil cualquier cambio de columnas. Se adopto el `row_factory` y las consultas ahora leen por
+nombre:
+
+```python
+# dao/conexion.py
+conexion = sqlite3.connect(str(self._ruta))
+conexion.row_factory = sqlite3.Row
+conexion.execute("PRAGMA foreign_keys = ON;")
+```
+
+*Razon tecnica:* el codigo queda autoexplicativo y un cambio de orden en el `SELECT` ya no altera la
+construccion de los objetos.
+
+### 5.2 Ejemplo concreto modificado
+
+**Sugerencia de la IA:** implementar el timeout de la API asi:
+
+```python
+respuesta = requests.get(URL)          # sugerencia original de la IA
+```
+
+**Decision: MODIFICADO.** Se conservo la idea de usar `requests`, pero se agrego el tiempo maximo de
+espera y el manejo de cada falla concreta, porque la version sugerida dejaba el programa colgado si
+el servidor no respondia:
+
+```python
+respuesta = requests.get(self._url, timeout=self._timeout)
+respuesta.raise_for_status()
+...
+except (requests.RequestException, ValueError, KeyError, TypeError) as error:
+    raise IndicadorNoDisponibleError(...) from error
+```
+
+*Razon tecnica:* el criterio 3.1.3 exige tiempo maximo de espera y continuidad del sistema. Ademas se
+separo `requests.RequestException` (falla de red) de `ValueError`/`KeyError` (respuesta inesperada),
+para no ocultar el error con un `except` generico.
+
+### 5.3 Ejemplo concreto descartado
+
+**Sugerencia de la IA:** resolver el tipo de producto con una estructura `if/elif` sobre el campo
+`tipo` dentro de `Pedido.procesar_despacho_entregas()`:
+
+```python
+# Sugerencia descartada
+for detalle in self._detalles:
+    if detalle.producto.tipo == "FISICO":
+        ...
+    elif detalle.producto.tipo == "DIGITAL":
+        ...
+```
+
+**Decision: DESCARTADO.** En su lugar se mantiene el polimorfismo: cada subtipo sobrescribe
+`procesar_entrega()` y el pedido solo invoca el metodo.
+
+```python
+def procesar_despacho_entregas(self) -> list[dict]:
+    return [detalle.producto.procesar_entrega(detalle) for detalle in self._detalles]
+```
+
+*Razon tecnica:* la rubrica del criterio 2.1.2 indica explicitamente que reemplazar el polimorfismo
+por `if` sobre el tipo queda en nivel "En desarrollo". Con el polimorfismo, agregar un nuevo tipo de
+producto no obliga a modificar `Pedido` (principio Abierto/Cerrado).
+
+### 5.4 Otras decisiones descartadas
+
+| Sugerencia de la IA | Decision | Razon tecnica |
+| :--- | :--- | :--- |
+| Guardar la contrasena con `hashlib.md5()` | Descartada | MD5 no es apto para contrasenas; se uso PBKDF2-HMAC-SHA256 con salt |
+| Usar `except Exception: pass` en la API | Descartada | Oculta el error; se capturan excepciones concretas y se informa |
+| Guardar los pedidos en una lista en memoria | Descartada | La rubrica exige persistencia real en base de datos |
+
+---
+
+## 6. Cumplimiento de los requisitos de la ficha del negocio
+
+| # | Requisito | Implementacion | Evidencia |
+| :-: | :--- | :--- | :--- |
+| 1 | Tres subtipos con un metodo que cambia | `ProductoFisico`, `ProductoDigital`, `ProductoServicio` sobrescriben `procesar_entrega()` | Opcion 3 > 7 del menu; prueba P09-P11 |
+| 2 | Dos trabajadores con permisos distintos | `Administrador` y `EncargadoBodega` | Opcion 5 del menu; inicio de sesion como bodega |
+| 3 | Un dato con validacion obligatoria | `Cliente.identificador`: RUT Modulo 11 o correo | Opcion 1 > 1; pruebas P07-P08 |
+| 4 | Una transaccion con lineas de detalle | `Pedido` compone `DetallePedido` (1 a 1..*) | Opcion 3 > 1 y 3; pruebas P12-P13 |
+| 5 | Dos reglas que impidan una operacion | `StockInsuficienteError` y `PedidoNoPagadoError` | Opciones 4 y 6 del submenu pedidos; P14-P15 |
+| 6 | Un precio con indicador externo | `ProductoElectronica` con `mindicador.cl` | Opcion 4 del menu; pruebas P16-P17 |
+
+---
+
+## 7. Guion de pruebas
+
+Los 19 casos del guion de pruebas estan automatizados en `tests/test_guion_pruebas.py`:
+
+```bash
+python tests/test_guion_pruebas.py
+```
+
+Cobertura: ejecucion y menu (P01), CRUD (P02-P06), validacion del dato obligatorio (P07-P08),
+entrega polimorfica por tipo (P09-P11), transaccion multi-linea y detalle (P12-P13), las dos reglas
+de negocio (P14-P15), indicador del dolar y su falla (P16-P17) y estabilidad ante entradas invalidas
+(P18-P19).
+
+---
+
+## 8. Publicacion web (valor agregado)
+
+Ademas del programa de consola exigido por la evaluacion, el proyecto se publica en
+**https://inacap.superflash.site** con:
+
+* documentacion del proyecto desde cero para el cliente;
+* recorrido del codigo por archivo;
+* resultados del guion de pruebas;
+* **consola en vivo** que ejecuta el mismo `main.py` en un entorno aislado por visitante.
+
+```bash
+pip install -r web/requirements.txt
+python web/app.py                  # http://127.0.0.1:3030
 ```
 
 ---
 
-## 🚀 7. Instrucciones para Revisión y Descarga
+## 9. Documentos de entrega
 
-1. **Documento PDF Oficial de Entrega:**
-   Descargar directamente desde [`docs/ES1_114-2A-F2_ecommerce.pdf`](docs/ES1_114-2A-F2_ecommerce.pdf) para adjuntar en la plataforma **Ambiente de Aprendizaje INACAP (AAI)** antes de las 20:30 horas.
-2. **Edición del Diagrama en draw.io:**
-   - Ingresar a [app.diagrams.net](https://app.diagrams.net/).
-   - Seleccionar **Abrir diagrama existente** y cargar [`docs/diagrama_clases.drawio`](docs/diagrama_clases.drawio).
+| Documento | Contenido |
+| :--- | :--- |
+| [`docs/ES2_114-2A-F2_ecommerce.pdf`](docs/ES2_114-2A-F2_ecommerce.pdf) | Informe tecnico de la solucion y matriz de la rubrica |
+| [`docs/GUIA_CLIENTE_ClickAndGo.pdf`](docs/GUIA_CLIENTE_ClickAndGo.pdf) | Guia del cliente: el proyecto y el codigo explicados desde cero |
+| [`docs/diagrama_clases.drawio`](docs/diagrama_clases.drawio) | Diagrama de clases UML editable |
+| [`docs/diagrama_clases.png`](docs/diagrama_clases.png) | Diagrama de clases en imagen |
+
+---
+
+**Repositorio:** https://github.com/MiguelTroncoso/ecommerce
+**Demo:** https://inacap.superflash.site

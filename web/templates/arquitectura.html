@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block titulo %}ClickAndGo - Arquitectura{% endblock %}
+{% block contenido %}
+
+<h1>Arquitectura de la solucion</h1>
+<p class="intro">
+  El sistema esta separado en cuatro capas. Cada capa tiene una unica responsabilidad, lo que
+  permite cambiar la base de datos o la interfaz sin tocar las reglas del negocio.
+</p>
+
+<pre class="diagrama">
+   main.py  (menu de consola)
+        |
+        +--> servicios/   validacion de entradas + API del dolar (requests)
+        |
+        +--> model/       clases del negocio, propiedades validadas y excepciones propias
+        |
+        +--> dao/         SQLite: CRUD, transacciones y consultas parametrizadas
+                              |
+                              +--> datos/clickandgo.db
+</pre>
+
+<h2>El modelo de clases</h2>
+<p>
+  Doce clases en total, una por archivo dentro de <code>model/</code>. Las relaciones siguen el
+  diagrama UML de la Evaluacion Sumativa N1.
+</p>
+
+<table class="tabla">
+  <thead><tr><th>Clase</th><th>Rol dentro del negocio</th><th>Archivo</th></tr></thead>
+  <tbody>
+    <tr><td><code>Cliente</code></td><td>Comprador; valida RUT o correo</td><td>model/cliente.py</td></tr>
+    <tr><td><code>Producto</code> (abstracta)</td><td>Contrato del catalogo: stock, precio y entrega</td><td>model/producto.py</td></tr>
+    <tr><td><code>ProductoFisico</code></td><td>Despacho por transporte con calculo de flete</td><td>model/producto_fisico.py</td></tr>
+    <tr><td><code>ProductoElectronica</code></td><td>Importado en USD; hereda de ProductoFisico</td><td>model/producto_electronica.py</td></tr>
+    <tr><td><code>ProductoDigital</code></td><td>Entrega inmediata con enlace y licencia, flete $0</td><td>model/producto_digital.py</td></tr>
+    <tr><td><code>ProductoServicio</code></td><td>Agenda una visita tecnica futura</td><td>model/producto_servicio.py</td></tr>
+    <tr><td><code>DetallePedido</code></td><td>Linea de la transaccion; congela cantidad y precio</td><td>model/detalle_pedido.py</td></tr>
+    <tr><td><code>Pedido</code></td><td>Transaccion; aplica las dos reglas de negocio</td><td>model/pedido.py</td></tr>
+    <tr><td><code>Trabajador</code> (abstracta)</td><td>Personal y autenticacion (PBKDF2)</td><td>model/trabajador.py</td></tr>
+    <tr><td><code>EncargadoBodega</code></td><td>Despacha, pero no modifica el catalogo</td><td>model/encargado_bodega.py</td></tr>
+    <tr><td><code>Administrador</code></td><td>Control total del catalogo y de los precios</td><td>model/administrador.py</td></tr>
+    <tr><td>Excepciones</td><td>Una por cada regla que impide una operacion</td><td>model/excepciones.py</td></tr>
+  </tbody>
+</table>
+
+<h2>Diagrama de clases UML</h2>
+<p><img class="diagrama-uml" src="/recursos/diagrama_clases.png" alt="Diagrama de clases UML de ClickAndGo"></p>
+
+<h2>Persistencia: cinco tablas</h2>
+<table class="tabla">
+  <thead><tr><th>Tabla</th><th>Guarda</th><th>Relacion</th></tr></thead>
+  <tbody>
+    <tr><td><code>trabajadores</code></td><td>Usuarios, rol, hash PBKDF2 y salt</td><td>Independiente</td></tr>
+    <tr><td><code>clientes</code></td><td>Nombre e identificador validado</td><td>1 a 0..* pedidos</td></tr>
+    <tr><td><code>productos</code></td><td>Los cuatro tipos de producto en una sola tabla</td><td>1 a * detalles</td></tr>
+    <tr><td><code>pedidos</code></td><td>Cabecera: cliente, fecha, estados y totales</td><td>1 a 1..* detalles</td></tr>
+    <tr><td><code>detalle_pedido</code></td><td>Lineas con cantidad y precio congelado</td><td>Clave foranea al pedido</td></tr>
+  </tbody>
+</table>
+<p class="nota">
+  Las tablas se crean solas al iniciar el programa (<code>dao/conexion.py</code>), por lo que el
+  sistema nunca depende de un script manual de instalacion.
+</p>
+
+<h2>Decisiones de seguridad</h2>
+<div class="columnas">
+  <div class="caja">
+    <h4>Inyeccion SQL</h4>
+    <p>Todas las consultas usan parametros enlazados (<code>?</code> o <code>:nombre</code>). El texto
+    que escribe el usuario nunca se concatena dentro de una sentencia SQL.</p>
+  </div>
+  <div class="caja">
+    <h4>Validacion de entradas</h4>
+    <p>Cada dato se valida por tipo, formato y rango antes de usarse. Las propiedades del modelo
+    validan en el <em>setter</em> y los lectores de consola reintentan sin caer.</p>
+  </div>
+  <div class="caja">
+    <h4>Autenticacion</h4>
+    <p>Las contrasenas se guardan con PBKDF2-HMAC-SHA256 (120.000 iteraciones) y salt aleatorio, y se
+    comparan con <code>hmac.compare_digest</code>.</p>
+  </div>
+  <div class="caja">
+    <h4>Permisos (RBAC)</h4>
+    <p>El encargado de bodega no puede modificar precios ni catalogo. La accion se bloquea con
+    <code>SinPermisoError</code>, no con un simple mensaje.</p>
+  </div>
+  <div class="caja">
+    <h4>Tiempo maximo de espera</h4>
+    <p>La consulta a mindicador.cl usa <code>timeout=5</code>. Si la API falla, se usa el ultimo valor
+    conocido y se informa el problema.</p>
+  </div>
+  <div class="caja">
+    <h4>Transacciones atomicas</h4>
+    <p>El pedido y sus lineas se graban en una sola transaccion SQL: o se guardan ambos o no se
+    guarda nada.</p>
+  </div>
+</div>
+
+{% endblock %}

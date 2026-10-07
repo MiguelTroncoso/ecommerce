@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block titulo %}ClickAndGo - Inicio{% endblock %}
+{% block contenido %}
+
+<section class="portada">
+  <h1>ClickAndGo</h1>
+  <p class="bajada">
+    Sistema de gestion para una tienda de comercio electronico que vende productos fisicos,
+    productos digitales, servicios tecnicos agendados y electronica importada cotizada en dolares.
+  </p>
+  <div class="botones">
+    <a class="boton primario" href="/demo">Probar el sistema en vivo</a>
+    <a class="boton" href="/descargas">Descargar informes y codigo</a>
+  </div>
+</section>
+
+<section class="tarjetas">
+  <article class="tarjeta">
+    <h3>1. Que problema resuelve</h3>
+    <p>
+      La tienda vende tres tipos de producto en un mismo pedido y cada uno se entrega de forma
+      distinta: los fisicos se despachan por transporte con flete, los digitales se entregan al
+      instante con un enlace, y los servicios se agendan para una fecha futura. El sistema resuelve
+      esa variedad con un mismo flujo de venta.
+    </p>
+  </article>
+  <article class="tarjeta">
+    <h3>2. Como se protege el negocio</h3>
+    <p>
+      Valida el RUT chileno (algoritmo Modulo 11) o el correo del cliente antes de vender, impide
+      confirmar un pedido sin stock suficiente e impide despachar un pedido que no este pagado.
+      Cada bloqueo es una excepcion propia del dominio, no un simple mensaje en pantalla.
+    </p>
+  </article>
+  <article class="tarjeta">
+    <h3>3. De donde sale el precio</h3>
+    <p>
+      La electronica importada se cotiza en dolares y se convierte a pesos con el valor del dolar
+      observado del dia, obtenido desde la API publica mindicador.cl. Si la API no responde, el
+      sistema avisa y sigue funcionando con el ultimo valor conocido.
+    </p>
+  </article>
+</section>
+
+<section class="bloque">
+  <h2>Recorrido rapido del proyecto</h2>
+  <table class="tabla">
+    <thead><tr><th>Etapa</th><th>Que hace</th><th>Donde vive en el codigo</th></tr></thead>
+    <tbody>
+      <tr><td>Modelo</td><td>Clases del negocio: cliente, productos, pedido, detalles y trabajadores</td><td><code>model/</code></td></tr>
+      <tr><td>Persistencia</td><td>CRUD en SQLite con consultas parametrizadas</td><td><code>dao/</code></td></tr>
+      <tr><td>Servicios</td><td>Validacion de entradas y consumo de la API del dolar</td><td><code>servicios/</code></td></tr>
+      <tr><td>Interfaz</td><td>Menu de consola que orquesta todo el sistema</td><td><code>main.py</code></td></tr>
+      <tr><td>Verificacion</td><td>19 casos del guion de pruebas automatizados</td><td><code>tests/</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="bloque">
+  <h2>Requisitos minimos del negocio y su cumplimiento</h2>
+  <table class="tabla">
+    <thead><tr><th>Requisito de la ficha</th><th>Implementacion</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Tres subtipos con un metodo que cambia</td><td><code>ProductoFisico</code>, <code>ProductoDigital</code> y <code>ProductoServicio</code> sobrescriben <code>procesar_entrega()</code></td><td class="ok">Cumple</td></tr>
+      <tr><td>Un dato con validacion obligatoria</td><td><code>Cliente.identificador</code> valida RUT Modulo 11 o correo en el <em>setter</em></td><td class="ok">Cumple</td></tr>
+      <tr><td>Una transaccion con lineas de detalle</td><td><code>Pedido</code> compone <code>DetallePedido</code> (1 a 1..*) y lo guarda junto al pedido</td><td class="ok">Cumple</td></tr>
+      <tr><td>Dos reglas que impidan una operacion</td><td><code>StockInsuficienteError</code> y <code>PedidoNoPagadoError</code></td><td class="ok">Cumple</td></tr>
+      <tr><td>Un precio con indicador externo</td><td><code>ProductoElectronica.calcular_precio_final(valor_dolar)</code> con la API mindicador.cl</td><td class="ok">Cumple</td></tr>
+      <tr><td>Dos trabajadores con permisos distintos</td><td><code>Administrador</code> y <code>EncargadoBodega</code> (RBAC)</td><td class="ok">Cumple</td></tr>
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}

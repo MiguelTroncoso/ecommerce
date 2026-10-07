@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titulo %}ClickAndGo - Descargas{% endblock %}
+{% block contenido %}
+
+<h1>Documentacion y descargas</h1>
+
+<div class="tarjetas">
+  <article class="tarjeta">
+    <h3>Informe de la solucion</h3>
+    <p>Documento tecnico de la Evaluacion Sumativa N2: modelo, persistencia, reglas de negocio,
+    seguridad, consumo de API y matriz de cumplimiento de la rubrica.</p>
+    <a class="boton primario" href="/recursos/ES2_114-2A-F2_ecommerce.pdf">Descargar PDF</a>
+  </article>
+  <article class="tarjeta">
+    <h3>Guia del cliente</h3>
+    <p>Explicacion del proyecto desde cero: que es ClickAndGo, como funciona cada tipo de producto,
+    como se usa el sistema paso a paso y como esta organizado el codigo.</p>
+    <a class="boton primario" href="/recursos/GUIA_CLIENTE_ClickAndGo.pdf">Descargar PDF</a>
+  </article>
+  <article class="tarjeta">
+    <h3>Diagrama de clases</h3>
+    <p>Diagrama UML editable en draw.io y su version en imagen, con herencia, composicion,
+    agregacion y multiplicidades.</p>
+    <a class="boton" href="/recursos/diagrama_clases.drawio">draw.io</a>
+    <a class="boton" href="/recursos/diagrama_clases.png">PNG</a>
+  </article>
+</div>
+
+<h2>Repositorio de codigo</h2>
+<p>
+  El codigo fuente completo esta publicado en GitHub:
+  <a href="https://github.com/MiguelTroncoso/ecommerce" target="_blank" rel="noopener">
+  github.com/MiguelTroncoso/ecommerce</a>.
+</p>
+<pre class="codigo">git clone https://github.com/MiguelTroncoso/ecommerce.git
+cd ecommerce
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py</pre>
+
+{% endblock %}
