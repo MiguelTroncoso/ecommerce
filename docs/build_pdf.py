@@ -848,7 +848,47 @@ def build_guia(ruta_salida: Path) -> None:
             "el mismo programa del repositorio.",
             e["cuerpo"],
         ),
-        Paragraph("11. Glosario breve", e["h1"]),
+        Paragraph("11. Ejemplo de una sesion real del sistema", e["h1"]),
+        Paragraph(
+            "Este es un extracto de una ejecucion real del programa, con los textos tal como los ve "
+            "el operador en la pantalla de la consola.",
+            e["cuerpo"],
+        ),
+        Paragraph(
+            "MENU PRINCIPAL<br/>"
+            "  1. Gestionar clientes<br/>"
+            "  2. Gestionar productos (catalogo)<br/>"
+            "  3. Gestionar pedidos (transacciones)<br/>"
+            "  4. Calcular precio con el dolar del dia (mindicador.cl)<br/>"
+            "  5. Ver trabajadores y permisos (RBAC)<br/>"
+            "  Opcion: 4<br/><br/>"
+            "  PRECIO CON EL DOLAR DEL DIA (mindicador.cl)<br/>"
+            "  [i] Dolar utilizado: $977,25 CLP/USD (2026-10-06) - fuente: mindicador.cl<br/>"
+            "  Monitor 4K Importado: USD 250,00 x 977,25 = $244.312 CLP<br/><br/>"
+            "  Opcion: 2  ->  Opcion: 2    (listar catalogo)<br/>"
+            "  - PROD-E01 ELECTRONICA Monitor 4K Importado - USD 250,00 - stock 5<br/>"
+            "  - PROD-F01 FISICO Silla Ergonómica Gamer - $85.000 - stock 10<br/>"
+            "  - PROD-D01 DIGITAL Licencia Antivirus Pro - $24.990 - stock 100<br/>"
+            "  - PROD-S01 SERVICIO Instalación Red - $40.000 - stock 15",
+            e["codigo"],
+        ),
+        Paragraph(
+            "El sistema informa siempre el resultado de cada operacion con las marcas [OK] y [!]. Si "
+            "una operacion no se puede realizar, el mensaje explica el motivo y el menu vuelve a "
+            "aparecer para que el trabajo pueda continuar.",
+            e["cuerpo"],
+        ),
+        Paragraph("12. Que incluye la entrega", e["h1"]),
+        tabla(celdas([
+            ["Entregable", "Descripcion"],
+            ["Programa de consola", "Repositorio GitHub publico con main.py, model/, dao/, servicios/, tests/ y README.md."],
+            ["Informe tecnico", "Documento ES2_114-2A-F2_ecommerce.pdf con el modelo, la persistencia, la seguridad y la matriz de la rubrica."],
+            ["Guia del cliente", "Este documento: el proyecto y el codigo explicados desde cero."],
+            ["Diagrama de clases", "Diagrama UML en imagen y su archivo editable (.drawio)."],
+            ["Demostracion en linea", "Sitio publicado en https://inacap.superflash.site con consola en vivo."],
+            ["Evidencia de pruebas", "Guion de pruebas P01 a P19 automatizado, con resultado Cumple en los 19 casos."],
+        ], e), anchos=[38 * mm, 128 * mm]),
+        Paragraph("13. Glosario breve", e["h1"]),
         tabla(celdas([
             ["Termino", "Significado"],
             ["Programacion orientada a objetos (POO)", "Forma de programar organizando el software en clases que representan conceptos del negocio."],
