@@ -21,7 +21,8 @@ install -d "$BASE"
 echo "==> 2. Obteniendo el codigo desde $REPO_URL"
 if [ -d "$APP/.git" ]; then
     git -C "$APP" fetch --all --prune
-    git -C "$APP" reset --hard origin/main
+    git -C "$APP" checkout main
+    git -C "$APP" pull --ff-only origin main
 else
     git clone "$REPO_URL" "$APP"
 fi
