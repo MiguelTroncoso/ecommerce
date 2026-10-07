@@ -1,0 +1,23 @@
+[Unit]
+Description=ClickAndGo - sitio de documentacion y consola en vivo (INACAP TI3V21)
+Documentation=https://github.com/MiguelTroncoso/ecommerce
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/clickandgo/app
+Environment=PYTHONPATH=/opt/clickandgo/app
+Environment=PYTHONUNBUFFERED=1
+Environment=CLICKANDGO_WEB_DATA=/opt/clickandgo/sesiones
+Environment=CLICKANDGO_DB=/opt/clickandgo/datos/clickandgo.db
+ExecStart=/opt/clickandgo/venv/bin/waitress-serve --host=127.0.0.1 --port=3030 --threads=8 web.app:app
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target
