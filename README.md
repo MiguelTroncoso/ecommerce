@@ -6,8 +6,15 @@
 [![Demo](https://img.shields.io/badge/Demo-inacap.superflash.site-1C4E80?style=flat-square)](https://inacap.superflash.site)
 
 Sistema desarrollado para la asignatura **Programacion Orientada a Objeto Seguro (TI3V21)**
-de INACAP, **Evaluacion Sumativa N2** (Unidades 2 y 3: software orientado a objetos,
-persistencia y seguridad en Python).
+de INACAP. Corresponde al mismo repositorio de la **Evaluacion Sumativa N2** (Unidades 2 y 3:
+software orientado a objetos, persistencia y seguridad en Python), **actualizado para la
+Evaluacion Sumativa N3** (Unidad 4: desarrollo de soluciones de software en Python) con la
+retroalimentacion recibida en la demostracion.
+
+> **Cambios de la Sumativa N3 (Unidad 4):** los codigos de clientes y productos ahora se
+> generan automaticamente (`C01`, `F01`, `D01`, `S01`, `E01`) y la interfaz de consola fue
+> rediseñada para seleccionar registros por numero en lugar de escribir codigos.
+> Ver [seccion 10](#10-cambios-incorporados-tras-la-retroalimentacion-de-la-es2).
 
 ---
 
@@ -23,6 +30,7 @@ persistencia y seguridad en Python).
 | Caso asignado | 05 - Tienda de e-commerce: **ClickAndGo** |
 | Integrantes | **Miguel Troncoso** y **Alexandy Remicinthe** |
 | Entrega | Miercoles 7 de octubre de 2026, 19:50 hrs |
+| Evaluacion vigente | Sumativa N3: revision oral del codigo, martes 13 de octubre de 2026, 21:30 hrs (laboratorio A403) |
 | Repositorio | https://github.com/MiguelTroncoso/ecommerce |
 | Demostracion en linea | https://inacap.superflash.site |
 
@@ -73,15 +81,19 @@ Al iniciar aparece el menu principal:
 ==============================================================================
   MENU PRINCIPAL
 ==============================================================================
-  1. Gestionar clientes
-  2. Gestionar productos (catalogo)
-  3. Gestionar pedidos (transacciones)
-  4. Calcular precio con el dolar del dia (mindicador.cl)
-  5. Ver trabajadores y permisos (RBAC)
-  6. Iniciar sesion / cambiar operador
-  7. Cargar datos de demostracion
+  1. Clientes           registrar, listar, modificar y eliminar
+  2. Productos          catalogo con los cuatro tipos
+  3. Pedidos            venta, pago, despacho y entrega
+  4. Dolar del dia      precio de la electronica importada
+  5. Trabajadores       roles y permisos (RBAC)
+  6. Iniciar sesion     cambiar de operador
+  7. Datos de ejemplo   cargar catalogo de demostracion
   0. Salir
 ```
+
+El sistema asigna los codigos automaticamente: **C01, C02, ...** para clientes y
+**F01, D01, S01, E01** para los cuatro tipos de producto. El usuario solo escribe el nombre y
+los datos que corresponden; nunca el identificador.
 
 ### Credenciales de demostracion
 
@@ -157,6 +169,9 @@ Todas se crean al iniciar el programa (`conexion.crear_tablas()`).
 * `indicador_dolar.py`: consumo de `https://mindicador.cl/api/dolar` con `requests` y `timeout=5`,
   con respaldo local del ultimo valor conocido.
 * `inicializacion.py`: creacion del esquema y carga de datos iniciales.
+* `codigos.py`: generacion automatica de codigos legibles (`C01`, `F01`, `D01`, `S01`, `E01`,
+  `PED-1001`) consultando el ultimo codigo usado en la base de datos.
+* `consola.py`: formato de la interfaz (titulos, paneles, tablas, mensajes y color).
 
 ---
 
@@ -364,8 +379,30 @@ python web/app.py                  # http://127.0.0.1:3030
 | :--- | :--- |
 | [`docs/ES2_114-2A-F2_ecommerce.pdf`](docs/ES2_114-2A-F2_ecommerce.pdf) | Informe tecnico de la solucion y matriz de la rubrica |
 | [`docs/GUIA_CLIENTE_ClickAndGo.pdf`](docs/GUIA_CLIENTE_ClickAndGo.pdf) | Guia del cliente: el proyecto y el codigo explicados desde cero |
+| [`docs/ES3_114-2A-F2_guion_defensa.pdf`](docs/ES3_114-2A-F2_guion_defensa.pdf) | Guion de la defensa oral: que dice cada integrante y donde mostrar cada requisito |
+| [`docs/ES3_114-2A-F2_presentacion.pptx`](docs/ES3_114-2A-F2_presentacion.pptx) | Diapositivas de apoyo para la revision oral del codigo |
 | [`docs/diagrama_clases.drawio`](docs/diagrama_clases.drawio) | Diagrama de clases UML editable |
 | [`docs/diagrama_clases.png`](docs/diagrama_clases.png) | Diagrama de clases en imagen |
+
+---
+
+## 10. Cambios incorporados tras la retroalimentacion de la ES2
+
+Estos son los cambios que se hicieron despues de la demostracion de la Evaluacion Sumativa N2
+y que se explican en la revision oral de la Sumativa N3.
+
+| # | Observacion recibida | Cambio realizado | Donde se ve en el codigo |
+| :-: | :--- | :--- | :--- |
+| 1 | Habia que escribir el codigo de cada producto y cliente (por ejemplo `PROD-E01`), lo que hacia lento y propenso a error el registro. | Los codigos se generan solos. Clientes `C01, C02, ...`; productos `F01, D01, S01, E01`; pedidos `PED-1001`. El usuario solo escribe el nombre y los datos. | `servicios/codigos.py` (`GeneradorCodigos`), usado en `main.py` al crear clientes (`C03`), productos (`F02`) y pedidos. |
+| 2 | La interfaz pedia codigos escritos a mano para modificar, eliminar o vender, lo que era incomodo y facil de equivocar. | Los listados son tablas numeradas y se elige con el numero (o con el codigo si se prefiere). Escribir `0` cancela. | `servicios/consola.py` (`tabla`, `listar_opciones`) y `servicios/validador.py` (`pedir_seleccion`). |
+| 3 | Los formularios de alta no indicaban en que paso iban ni cuanto faltaba. | Cada dato pide con contador de paso: `[1/7] Tipo de producto`, `[2/7] Nombre`, etc. Al terminar se muestra un panel con el resumen y el codigo asignado. | `main.py` (`_crear_cliente`, `_crear_producto`, `_crear_pedido`) y `servicios/consola.py` (`paso`, `panel`). |
+| 4 | Las listas eran lineas de texto sueltas, dificiles de leer en la presentacion. | Todas las listas se muestran como tablas con encabezado, alineacion por columna y ancho calculado automaticamente. | `servicios/consola.py` (`tabla`). |
+| 5 | Los mensajes de exito, aviso y error se veian iguales. | Se separaron con marcas y color: `[OK]` verde, `[!]` ambar, `[i]` informativo y `[X]` rojo. El color se activa solo en terminal interactiva. | `servicios/consola.py` (`ok`, `aviso`, `info`, `error`, `habilitar_color`). |
+| 6 | El menu no explicaba que hacia cada opcion. | El menu principal tiene una descripcion breve por opcion y muestra el operador activo. | `main.py` (`_mostrar_menu`). |
+
+Cada uno de estos cambios tiene su prueba automatizada en
+`tests/test_guion_pruebas.py`: `test_codigos_automaticos_de_clientes_y_productos`,
+`test_el_usuario_nunca_escribe_el_codigo` y `test_menu_muestra_la_pista_de_codigos_automaticos`.
 
 ---
 

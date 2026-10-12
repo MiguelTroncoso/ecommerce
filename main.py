@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """ClickAndGo 2.0 - Sistema de gestion e-commerce por consola.
 
-Evaluacion Sumativa N2 - Programacion Orientada a Objeto Seguro (INACAP TI3V21)
+Evaluacion Sumativa N2 y N3 - Programacion Orientada a Objeto Seguro (TI3V21)
 
 Arquitectura:
 
     model/      clases del diagrama UML (una por archivo, con herencia,
                 encapsulamiento y excepciones propias de negocio)
     dao/        persistencia SQLite con consultas parametrizadas
-    servicios/  validacion de entradas y consumo de la API mindicador.cl
+    servicios/  validacion de entradas, codigos automaticos y API mindicador.cl
     main.py     menu de consola que orquesta todo
 
 Ejecucion:
@@ -42,6 +42,21 @@ from model.producto_digital import ProductoDigital  # noqa: E402
 from model.producto_electronica import ProductoElectronica  # noqa: E402
 from model.producto_fisico import ProductoFisico  # noqa: E402
 from model.producto_servicio import ProductoServicio  # noqa: E402
+from servicios.codigos import GeneradorCodigos  # noqa: E402
+from servicios.consola import (  # noqa: E402
+    aviso,
+    azul,
+    gris,
+    habilitar_color,
+    info,
+    negrita,
+    ok,
+    panel,
+    paso,
+    subtitulo,
+    tabla,
+    titulo,
+)
 from servicios.indicador_dolar import ServicioIndicadorDolar  # noqa: E402
 from servicios.inicializacion import cargar_datos_iniciales, preparar_base  # noqa: E402
 from servicios.validador import (  # noqa: E402
@@ -50,36 +65,27 @@ from servicios.validador import (  # noqa: E402
     pedir_fecha_futura,
     pedir_identificador,
     pedir_opcion,
+    pedir_seleccion,
     pedir_texto,
     pedir_url,
 )
 
-ANCHO = 78
 CLP = "${:,.0f}"
-
-
-def titulo(texto: str) -> None:
-    print("\n" + "=" * ANCHO)
-    print(f"  {texto}")
-    print("=" * ANCHO)
-
-
-def subtitulo(texto: str) -> None:
-    print("\n" + "-" * ANCHO)
-    print(f"  {texto}")
-    print("-" * ANCHO)
 
 
 class AplicacionClickAndGo:
     """Menu principal del sistema. ``entrada`` permite inyectar otro origen."""
 
-    def __init__(self, conexion: ConexionBD | None = None, entrada=input) -> None:
+    def __init__(self, conexion: ConexionBD | None = None, entrada=input,
+                 color: bool | None = None) -> None:
+        habilitar_color(color)
         self._entrada = entrada
         self._bd = conexion or ConexionBD()
         self._clientes = ClienteDAO(self._bd)
         self._productos = ProductoDAO(self._bd)
         self._pedidos = PedidoDAO(self._bd)
         self._trabajadores = TrabajadorDAO(self._bd)
+        self._codigos = GeneradorCodigos(self._bd)
         self._dolar = ServicioIndicadorDolar()
         # El esquema se crea al construir la aplicacion: asi el programa
         # siempre parte desde una base de datos consistente.
@@ -112,44 +118,52 @@ class AplicacionClickAndGo:
             try:
                 self._despachar_menu(opcion)
             except ClickAndGoError as error:
-                print(f"\n  [!] Operacion no realizada: {error}")
+                aviso(f"Operacion no realizada: {error}")
             except sqlite3.IntegrityError as error:
-                print(f"\n  [!] El registro no se pudo guardar: {error}")
+                aviso(f"El registro no se pudo guardar: {error}")
             except (ValueError, TypeError) as error:
-                print(f"\n  [!] Dato invalido: {error}")
+                aviso(f"Dato invalido: {error}")
             except KeyboardInterrupt:
                 print("\n\n  Sesion finalizada por el usuario (Ctrl+C).")
                 self._activo = False
             except Exception as error:  # red de seguridad: informa y continua
-                print(f"\n  [!] Error inesperado controlado: {type(error).__name__}: {error}")
+                aviso(f"Error inesperado controlado: {type(error).__name__}: {error}")
 
     @staticmethod
     def _opciones_menu() -> list[str]:
         return ["1", "2", "3", "4", "5", "6", "7", "0"]
 
     def _bienvenida(self) -> None:
-        print("=" * ANCHO)
-        print("   ClickAndGo  |  Sistema de gestion e-commerce")
-        print("   INACAP TI3V21 - Evaluacion Sumativa N2 (POO Seguro)")
-        print("=" * ANCHO)
+        barra = "=" * 78
+        print(barra)
+        print("   " + negrita("ClickAndGo") + "  |  Sistema de gestion e-commerce")
+        print("   INACAP TI3V21 - Evaluacion Sumativa N2 y N3 (POO Seguro)")
+        print(barra)
         print(f"   Base de datos : {self._bd.ruta}")
         print(f"   Operador      : {self._sesion.nombre} ({self._sesion.rol})")
-        print("=" * ANCHO)
-        print("   Credenciales de demostracion:")
-        print("     Administrador      -> usuario 'Maria Gonzalez'  / clave 'admin1234'")
-        print("     Encargado de bodega -> usuario 'Juan Perez'     / clave 'bodega1234'")
+        print(barra)
+        print(gris("   Los codigos de clientes y productos se generan automaticamente:"))
+        print(gris("   C01 cliente | F01 fisico | D01 digital | S01 servicio | E01 electronica"))
 
     def _mostrar_menu(self) -> None:
         titulo("MENU PRINCIPAL")
-        print("  1. Gestionar clientes")
-        print("  2. Gestionar productos (catalogo)")
-        print("  3. Gestionar pedidos (transacciones)")
-        print("  4. Calcular precio con el dolar del dia (mindicador.cl)")
-        print("  5. Ver trabajadores y permisos (RBAC)")
-        print("  6. Iniciar sesion / cambiar operador")
-        print("  7. Cargar datos de demostracion")
-        print("  0. Salir")
-        print(f"\n  Sesion activa: {self._sesion.nombre} ({self._sesion.rol})")
+        opciones = [
+            ("1", "Clientes", "registrar, listar, modificar y eliminar"),
+            ("2", "Productos", "catalogo con los cuatro tipos"),
+            ("3", "Pedidos", "venta, pago, despacho y entrega"),
+            ("4", "Dolar del dia", "precio de la electronica importada"),
+            ("5", "Trabajadores", "roles y permisos (RBAC)"),
+            ("6", "Iniciar sesion", "cambiar de operador"),
+            ("7", "Datos de ejemplo", "cargar catalogo de demostracion"),
+            ("0", "Salir", ""),
+        ]
+        for numero, nombre, detalle in opciones:
+            etiqueta = f"  {numero}. {nombre}"
+            if detalle:
+                print(f"{etiqueta:<24}{gris(detalle)}")
+            else:
+                print(etiqueta)
+        print(f"\n  Sesion activa: {negrita(self._sesion.nombre)} ({self._sesion.rol})")
 
     def _despachar_menu(self, opcion: str) -> None:
         acciones = {
@@ -169,12 +183,65 @@ class AplicacionClickAndGo:
         print("\n  Gracias por usar ClickAndGo. Hasta pronto.\n")
 
     # ==================================================================
+    # Utilidades de seleccion
+    # ==================================================================
+    def _elegir_cliente(self, mensaje: str = "  Numero o codigo del cliente"):
+        clientes = self._clientes.listar()
+        if not clientes:
+            aviso("No hay clientes registrados. Cree uno primero (opcion 1).")
+            return None
+        return pedir_seleccion(
+            clientes,
+            mensaje,
+            lambda cliente: f"{cliente.id_cliente}  {cliente.nombre}  "
+                            f"({cliente.tipo_identificador}: {cliente.identificador})",
+            lambda cliente: cliente.id_cliente,
+            self._entrada,
+        )
+
+    def _elegir_producto(self, mensaje: str = "  Numero o codigo del producto"):
+        productos = self._productos.listar()
+        if not productos:
+            aviso("No hay productos en el catalogo. Cree uno primero (opcion 2).")
+            return None
+        return pedir_seleccion(
+            productos,
+            mensaje,
+            lambda producto: f"{producto.id_producto}  {producto.nombre}  "
+                             f"({producto.tipo}, {self._precio_texto(producto)}, "
+                             f"stock {producto.stock})",
+            lambda producto: producto.id_producto,
+            self._entrada,
+        )
+
+    def _elegir_pedido(self, mensaje: str = "  Numero o codigo del pedido"):
+        pedidos = self._pedidos.listar()
+        if not pedidos:
+            aviso("No hay pedidos registrados. Cree uno primero (opcion 3).")
+            return None
+        return pedir_seleccion(
+            pedidos,
+            mensaje,
+            lambda pedido: f"{pedido.id_pedido}  {pedido.cliente.nombre}  "
+                           f"{pedido.estado_pago}/{pedido.estado_entrega}  "
+                           f"{CLP.format(pedido.total_final_clp)}",
+            lambda pedido: pedido.id_pedido,
+            self._entrada,
+        )
+
+    @staticmethod
+    def _precio_texto(producto) -> str:
+        if isinstance(producto, ProductoElectronica):
+            return f"USD {producto.precio_usd:,.2f}"
+        return CLP.format(producto.precio_base_clp)
+
+    # ==================================================================
     # Clientes
     # ==================================================================
     def _menu_clientes(self) -> None:
         while True:
             subtitulo("CLIENTES")
-            print("  1. Crear cliente (valida RUT Modulo 11 o correo)")
+            print("  1. Registrar cliente      (el codigo se asigna automaticamente)")
             print("  2. Listar clientes")
             print("  3. Modificar cliente")
             print("  4. Eliminar cliente")
@@ -192,57 +259,81 @@ class AplicacionClickAndGo:
                 self._eliminar_cliente()
 
     def _crear_cliente(self) -> None:
-        subtitulo("NUEVO CLIENTE")
-        id_cliente = pedir_texto("  Identificador interno (ej: CLI-03)", self._entrada, 2, 20)
-        nombre = pedir_texto("  Nombre completo", self._entrada, 3, 80)
-        tipo = pedir_opcion("  Tipo de identificador (1=RUT, 2=EMAIL)", ["1", "2"], self._entrada)
+        subtitulo("REGISTRAR CLIENTE")
+        print(gris("  El sistema asignara el codigo automaticamente (C01, C02, ...)."))
+        nombre = pedir_texto(paso(1, 3, "Nombre completo"), self._entrada, 3, 80)
+        tipo = pedir_opcion(
+            paso(2, 3, "Tipo de identificador (1=RUT, 2=EMAIL)"), ["1", "2"], self._entrada
+        )
         if tipo is None:
             return
         tipo = "RUT" if tipo == "1" else "EMAIL"
         identificador = pedir_identificador(
-            "  RUT (ej: 19.876.543-0)" if tipo == "RUT" else "  Correo (ej: cliente@correo.cl)",
+            paso(3, 3, "RUT (ej: 19.876.543-0)" if tipo == "RUT"
+                 else "Correo (ej: cliente@correo.cl)"),
             tipo,
             self._entrada,
         )
-        cliente = Cliente(id_cliente, nombre, identificador, tipo)
+        codigo = self._codigos.siguiente_cliente()
+        cliente = Cliente(codigo, nombre, identificador, tipo)
         self._clientes.crear(cliente)
-        print(f"\n  [OK] Cliente guardado: {cliente}")
+        panel("CLIENTE REGISTRADO", [
+            ("Codigo asignado", cliente.id_cliente),
+            ("Nombre", cliente.nombre),
+            ("Identificador", f"{cliente.tipo_identificador}: {cliente.identificador}"),
+        ])
 
-    def _listar_clientes(self) -> None:
+    def _listar_clientes(self) -> list:
         subtitulo("LISTADO DE CLIENTES")
         clientes = self._clientes.listar()
         if not clientes:
-            print("  No hay clientes registrados.")
-            return
-        for cliente in clientes:
-            print(f"  - {cliente.id_cliente:<10} {cliente.nombre:<28} "
-                  f"{cliente.tipo_identificador:<6} {cliente.identificador}")
+            aviso("No hay clientes registrados todavia.")
+            return []
+        tabla(
+            ["CODIGO", "NOMBRE", "TIPO", "IDENTIFICADOR"],
+            [[c.id_cliente, c.nombre, c.tipo_identificador, c.identificador] for c in clientes],
+        )
+        return clientes
 
     def _modificar_cliente(self) -> None:
-        self._listar_clientes()
-        id_cliente = pedir_texto("  Identificador interno a modificar", self._entrada, 2, 20)
-        cliente = self._clientes.obtener(id_cliente)
-        cliente.nombre = pedir_texto("  Nuevo nombre", self._entrada, 3, 80)
-        tipo = pedir_opcion("  Tipo de identificador (1=RUT, 2=EMAIL)", ["1", "2"], self._entrada)
+        cliente = self._elegir_cliente()
+        if cliente is None:
+            return
+        subtitulo(f"MODIFICAR CLIENTE {cliente.id_cliente}")
+        nombre = pedir_texto(
+            paso(1, 2, f"Nuevo nombre (Enter para mantener '{cliente.nombre}')"),
+            self._entrada, 3, 80, permitir_vacio=True,
+        )
+        if nombre:
+            cliente.nombre = nombre
+        tipo = pedir_opcion(
+            paso(2, 2, "Tipo de identificador (1=RUT, 2=EMAIL)"), ["1", "2"], self._entrada
+        )
         if tipo is None:
             return
         tipo = "RUT" if tipo == "1" else "EMAIL"
         cliente.tipo_identificador = tipo
         cliente.identificador = pedir_identificador("  Nuevo identificador", tipo, self._entrada)
         self._clientes.actualizar(cliente)
-        print(f"\n  [OK] Cliente actualizado: {cliente}")
+        panel("CLIENTE ACTUALIZADO", [
+            ("Codigo", cliente.id_cliente),
+            ("Nombre", cliente.nombre),
+            ("Identificador", f"{cliente.tipo_identificador}: {cliente.identificador}"),
+        ])
 
     def _eliminar_cliente(self) -> None:
-        self._listar_clientes()
-        id_cliente = pedir_texto("  Identificador interno a eliminar", self._entrada, 2, 20)
-        confirmar = pedir_opcion("  Confirma la eliminacion? (1=Si, 0=No)", ["1", "0"], self._entrada)
-        if confirmar != "1":
-            print("  Operacion cancelada.")
+        cliente = self._elegir_cliente()
+        if cliente is None:
             return
-        if self._clientes.eliminar(id_cliente):
-            print(f"\n  [OK] Cliente {id_cliente} eliminado.")
-        else:
-            print(f"\n  [!] No existe el cliente {id_cliente}.")
+        confirmar = pedir_opcion(
+            f"  Confirma eliminar a {cliente.nombre} ({cliente.id_cliente})? (1=Si, 0=No)",
+            ["1", "0"], self._entrada,
+        )
+        if confirmar != "1":
+            info("Operacion cancelada.")
+            return
+        if self._clientes.eliminar(cliente.id_cliente):
+            ok(f"Cliente {cliente.id_cliente} eliminado.")
 
     # ==================================================================
     # Productos
@@ -250,9 +341,9 @@ class AplicacionClickAndGo:
     def _menu_productos(self) -> None:
         while True:
             subtitulo("CATALOGO DE PRODUCTOS")
-            print("  1. Crear producto")
-            print("  2. Listar productos")
-            print("  3. Modificar producto (nombre / precio / stock)")
+            print("  1. Registrar producto    (el codigo se asigna automaticamente)")
+            print("  2. Listar catalogo")
+            print("  3. Modificar producto    (nombre, precio y stock)")
             print("  4. Eliminar producto")
             print("  0. Volver")
             opcion = pedir_opcion("  Opcion", ["1", "2", "3", "4", "0"], self._entrada)
@@ -273,107 +364,128 @@ class AplicacionClickAndGo:
 
     def _crear_producto(self) -> None:
         self._validar_permiso_catalogo()
-        subtitulo("NUEVO PRODUCTO")
+        subtitulo("REGISTRAR PRODUCTO")
         print("  Tipos disponibles:")
-        print("   1 = Producto fisico (precio en CLP)")
-        print("   2 = Producto digital (enlace de descarga)")
-        print("   3 = Servicio tecnico (agenda futura)")
-        print("   4 = Electronica importada (precio en USD)")
-        tipo = pedir_opcion("  Tipo", ["1", "2", "3", "4"], self._entrada)
+        print("   1 = Producto fisico        (codigo F01, F02, ...)")
+        print("   2 = Producto digital       (codigo D01, D02, ...)")
+        print("   3 = Servicio tecnico       (codigo S01, S02, ...)")
+        print("   4 = Electronica importada  (codigo E01, E02, ... USD)")
+        print(gris("  El codigo se asigna automaticamente segun el tipo."))
+
+        tipo = pedir_opcion(paso(1, 3, "Tipo de producto"), ["1", "2", "3", "4"], self._entrada)
         if tipo is None:
             return
-        id_producto = pedir_texto("  Identificador (ej: PROD-F02)", self._entrada, 2, 20)
-        nombre = pedir_texto("  Nombre", self._entrada, 3, 60)
-        stock = pedir_entero("  Stock inicial", self._entrada, 0, 1_000_000)
-        producto = None
+        extras = {"1": 3, "2": 4, "3": 4, "4": 4}[tipo]
+        total = 3 + extras
+        nombre = pedir_texto(paso(2, total, "Nombre del producto"), self._entrada, 3, 60)
+        stock = pedir_entero(paso(3, total, "Stock inicial"), self._entrada, 0, 1_000_000)
 
+        producto = None
         if tipo == "1":
-            precio = pedir_decimal("  Precio base CLP", self._entrada, 0)
-            peso = pedir_decimal("  Peso en kg", self._entrada, 0.001)
-            volumen = pedir_decimal("  Volumen en m3", self._entrada, 0.0001)
-            producto = ProductoFisico(id_producto, nombre, precio, stock, peso, volumen)
+            precio = pedir_decimal(paso(4, total, "Precio base en CLP"), self._entrada, 0)
+            peso = pedir_decimal(paso(5, total, "Peso en kg"), self._entrada, 0.001)
+            volumen = pedir_decimal(paso(6, total, "Volumen en m3"), self._entrada, 0.0001)
+            codigo = self._codigos.siguiente_producto("FISICO")
+            producto = ProductoFisico(codigo, nombre, precio, stock, peso, volumen)
         elif tipo == "2":
-            precio = pedir_decimal("  Precio base CLP", self._entrada, 0)
-            enlace = pedir_url("  Enlace de descarga", self._entrada)
-            licencia = pedir_texto("  Licencia de activacion", self._entrada, 4, 40)
-            peso_mb = pedir_decimal("  Peso del archivo en MB", self._entrada, 0)
-            producto = ProductoDigital(id_producto, nombre, precio, stock, enlace, licencia, peso_mb)
+            precio = pedir_decimal(paso(4, total, "Precio base en CLP"), self._entrada, 0)
+            enlace = pedir_url(paso(5, total, "Enlace de descarga"), self._entrada)
+            licencia = pedir_texto(paso(6, total, "Licencia de activacion"), self._entrada, 4, 40)
+            peso_mb = pedir_decimal(paso(7, total, "Peso del archivo en MB"), self._entrada, 0)
+            codigo = self._codigos.siguiente_producto("DIGITAL")
+            producto = ProductoDigital(codigo, nombre, precio, stock, enlace, licencia, peso_mb)
         elif tipo == "3":
-            precio = pedir_decimal("  Precio base CLP", self._entrada, 0)
-            fecha = pedir_fecha_futura("  Fecha y hora (AAAA-MM-DD HH:MM)", self._entrada)
-            direccion = pedir_texto("  Direccion de la visita", self._entrada, 5, 80)
-            duracion = pedir_entero("  Duracion estimada en horas", self._entrada, 1, 24)
-            producto = ProductoServicio(id_producto, nombre, precio, stock, fecha, direccion, duracion)
+            precio = pedir_decimal(paso(4, total, "Precio base en CLP"), self._entrada, 0)
+            fecha = pedir_fecha_futura(
+                paso(5, total, "Fecha y hora (AAAA-MM-DD HH:MM)"), self._entrada
+            )
+            direccion = pedir_texto(paso(6, total, "Direccion de la visita"), self._entrada, 5, 80)
+            duracion = pedir_entero(paso(7, total, "Duracion estimada en horas"), self._entrada, 1, 24)
+            codigo = self._codigos.siguiente_producto("SERVICIO")
+            producto = ProductoServicio(
+                codigo, nombre, precio, stock, fecha, direccion, duracion
+            )
         else:
-            precio_usd = pedir_decimal("  Precio en USD", self._entrada, 0.01)
-            peso = pedir_decimal("  Peso en kg", self._entrada, 0.001)
-            volumen = pedir_decimal("  Volumen en m3", self._entrada, 0.0001)
-            garantia = pedir_entero("  Garantia en meses", self._entrada, 0, 120)
+            precio_usd = pedir_decimal(paso(4, total, "Precio en USD"), self._entrada, 0.01)
+            peso = pedir_decimal(paso(5, total, "Peso en kg"), self._entrada, 0.001)
+            volumen = pedir_decimal(paso(6, total, "Volumen en m3"), self._entrada, 0.0001)
+            garantia = pedir_entero(paso(7, total, "Garantia en meses"), self._entrada, 0, 120)
+            codigo = self._codigos.siguiente_producto("ELECTRONICA")
             producto = ProductoElectronica(
-                id_producto, nombre, precio_usd, stock, peso, volumen, garantia
+                codigo, nombre, precio_usd, stock, peso, volumen, garantia
             )
 
         self._productos.crear(producto)
-        print(f"\n  [OK] Producto guardado: {producto}")
+        panel("PRODUCTO REGISTRADO", [
+            ("Codigo asignado", producto.id_producto),
+            ("Nombre", producto.nombre),
+            ("Tipo", producto.tipo),
+            ("Precio", self._precio_texto(producto)),
+            ("Stock", str(producto.stock)),
+        ])
 
     def _listar_productos(self, tipo: str | None = None) -> list:
         subtitulo("CATALOGO" + (f" - {tipo}" if tipo else ""))
         productos = self._productos.listar(tipo)
         if not productos:
-            print("  No hay productos registrados.")
+            aviso("No hay productos registrados todavia.")
             return []
-        for producto in productos:
-            precio = f"USD {producto.precio_usd:,.2f}" if isinstance(
-                producto, ProductoElectronica
-            ) else f"${producto.precio_base_clp:,.0f} CLP"
-            print(f"  - {producto.id_producto:<10} {producto.tipo:<12} "
-                  f"{producto.nombre:<28} {precio:<16} stock {producto.stock}")
+        tabla(
+            ["CODIGO", "TIPO", "NOMBRE", "PRECIO", "STOCK"],
+            [[p.id_producto, p.tipo, p.nombre, self._precio_texto(p), str(p.stock)]
+             for p in productos],
+            ["<", "<", "<", ">", ">"],
+        )
         return productos
 
     def _modificar_producto(self) -> None:
         self._validar_permiso_catalogo()
-        productos = self._listar_productos()
-        if not productos:
+        producto = self._elegir_producto()
+        if producto is None:
             return
-        id_producto = pedir_texto("  Identificador del producto a modificar", self._entrada, 2, 20)
-        producto = self._productos.obtener(id_producto)
-        print(f"  Producto seleccionado: {producto}")
+        subtitulo(f"MODIFICAR PRODUCTO {producto.id_producto}")
         nuevo_nombre = pedir_texto(
-            f"  Nuevo nombre (Enter para mantener '{producto.nombre}')",
-            self._entrada,
-            3,
-            60,
-            permitir_vacio=True,
+            paso(1, 3, f"Nuevo nombre (Enter para mantener '{producto.nombre}')"),
+            self._entrada, 3, 60, permitir_vacio=True,
         )
         if nuevo_nombre:
             producto.nombre = nuevo_nombre
-        nuevo_stock = pedir_entero(
-            f"  Nuevo stock (actual {producto.stock})", self._entrada, 0, 1_000_000
+        producto.stock = pedir_entero(
+            paso(2, 3, f"Nuevo stock (actual {producto.stock})"),
+            self._entrada, 0, 1_000_000,
         )
-        producto.stock = nuevo_stock
         if isinstance(producto, ProductoElectronica):
             producto.precio_usd = pedir_decimal(
-                f"  Nuevo precio USD (actual {producto.precio_usd})", self._entrada, 0.01
+                paso(3, 3, f"Nuevo precio USD (actual {producto.precio_usd:,.2f})"),
+                self._entrada, 0.01,
             )
         else:
             producto.precio_base_clp = pedir_decimal(
-                f"  Nuevo precio CLP (actual {producto.precio_base_clp:,.0f})",
-                self._entrada,
-                0,
+                paso(3, 3, f"Nuevo precio CLP (actual {CLP.format(producto.precio_base_clp)})"),
+                self._entrada, 0,
             )
         self._productos.actualizar(producto)
-        print(f"\n  [OK] Producto actualizado: {producto}")
+        panel("PRODUCTO ACTUALIZADO", [
+            ("Codigo", producto.id_producto),
+            ("Nombre", producto.nombre),
+            ("Precio", self._precio_texto(producto)),
+            ("Stock", str(producto.stock)),
+        ])
 
     def _eliminar_producto(self) -> None:
         self._validar_permiso_catalogo()
-        productos = self._listar_productos()
-        if not productos:
+        producto = self._elegir_producto()
+        if producto is None:
             return
-        id_producto = pedir_texto("  Identificador del producto a eliminar", self._entrada, 2, 20)
-        if self._productos.eliminar(id_producto):
-            print(f"\n  [OK] Producto {id_producto} eliminado del catalogo.")
-        else:
-            print(f"\n  [!] No existe el producto {id_producto}.")
+        confirmar = pedir_opcion(
+            f"  Confirma eliminar '{producto.nombre}' ({producto.id_producto})? (1=Si, 0=No)",
+            ["1", "0"], self._entrada,
+        )
+        if confirmar != "1":
+            info("Operacion cancelada.")
+            return
+        if self._productos.eliminar(producto.id_producto):
+            ok(f"Producto {producto.id_producto} eliminado del catalogo.")
 
     # ==================================================================
     # Pedidos
@@ -381,13 +493,13 @@ class AplicacionClickAndGo:
     def _menu_pedidos(self) -> None:
         while True:
             subtitulo("PEDIDOS")
-            print("  1. Crear pedido (multi-linea)")
+            print("  1. Crear pedido            (multi-linea)")
             print("  2. Listar pedidos")
             print("  3. Ver detalle de un pedido")
-            print("  4. Confirmar pedido (Regla 1: stock suficiente)")
-            print("  5. Registrar pago del pedido")
-            print("  6. Despachar pedido (Regla 2: pedido pagado)")
-            print("  7. Procesar entrega polimorfica")
+            print("  4. Confirmar pedido        (Regla 1: stock suficiente)")
+            print("  5. Registrar pago")
+            print("  6. Despachar pedido        (Regla 2: pedido pagado)")
+            print("  7. Procesar entrega        (comportamiento polimorfico)")
             print("  8. Eliminar pedido")
             print("  0. Volver")
             opcion = pedir_opcion(
@@ -412,27 +524,17 @@ class AplicacionClickAndGo:
             elif opcion == "8":
                 self._eliminar_pedido()
 
-    def _siguiente_id_pedido(self) -> str:
-        numero = self._pedidos.contar() + 1001
-        while True:
-            candidato = f"PED-{numero}"
-            if not self._pedidos._bd.consultar_uno(  # noqa: SLF001
-                "SELECT 1 FROM pedidos WHERE id_pedido = :id", {"id": candidato}
-            ):
-                return candidato
-            numero += 1
-
     def _valor_dolar(self) -> float | None:
         """Obtiene el dolar del dia informando cualquier falla."""
         self._dolar_consultado = True
         indicador, advertencia = self._dolar.valor_para_calculo()
         if advertencia:
-            print(f"\n  [!] {advertencia}")
+            aviso(advertencia)
         if indicador is None:
-            print("  [!] Sin valor de dolar disponible: no es posible cotizar importados.")
+            aviso("Sin valor de dolar disponible: no es posible cotizar importados.")
             return None
         self._valor_dolar_ultimo = indicador.valor
-        print(f"  [i] Dolar utilizado: {indicador}")
+        info(f"Dolar utilizado: {indicador}")
         return indicador.valor
 
     def _valor_dolar_si_falta(self) -> float | None:
@@ -445,94 +547,98 @@ class AplicacionClickAndGo:
 
     def _crear_pedido(self) -> None:
         subtitulo("NUEVO PEDIDO")
-        clientes = self._clientes.listar()
-        if not clientes:
-            print("  [!] Primero debe registrar al menos un cliente.")
+        cliente = self._elegir_cliente("  Numero o codigo del cliente")
+        if cliente is None:
             return
-        for cliente in clientes:
-            print(f"  {cliente.id_cliente:<10} {cliente.nombre}")
-        id_cliente = pedir_texto("  Identificador del cliente", self._entrada, 2, 20)
-        cliente = self._clientes.obtener(id_cliente)
-        id_sugerido = self._siguiente_id_pedido()
-        id_pedido = pedir_texto(
-            f"  Numero de pedido (Enter para {id_sugerido})",
-            self._entrada,
-            4,
-            20,
-            permitir_vacio=True,
-        ) or id_sugerido
-        pedido = Pedido(id_pedido, cliente)
+        pedido = Pedido(self._codigos.siguiente_pedido(), cliente)
+        info(f"Numero de pedido asignado automaticamente: {pedido.id_pedido}")
 
         while True:
-            self._listar_productos()
-            id_producto = pedir_texto(
-                "  Producto a agregar (escriba FIN para terminar)", self._entrada, 1, 20
+            productos = self._listar_productos()
+            if not productos:
+                return
+            producto = pedir_seleccion(
+                productos,
+                "  Producto a agregar (0 para terminar)",
+                lambda p: f"{p.id_producto}  {p.nombre}  "
+                          f"({p.tipo}, {self._precio_texto(p)}, stock {p.stock})",
+                lambda p: p.id_producto,
+                self._entrada,
+                descripcion_cancelar="terminar el pedido",
             )
-            if id_producto.lower() in ("fin", "salir", "0"):
+            if producto is None:
                 break
-            try:
-                producto = self._productos.obtener(id_producto)
-            except RegistroNoEncontradoError as error:
-                print(f"  [!] {error}")
-                continue
             cantidad = pedir_entero("  Cantidad", self._entrada, 1, 100000)
             valor_dolar = None
-            if producto.tipo == "ELECTRONICA":
+            if isinstance(producto, ProductoElectronica):
                 valor_dolar = self._valor_dolar_si_falta()
                 if valor_dolar is None:
-                    print("  [!] Sin valor del dolar no se puede cotizar este producto importado.")
+                    aviso("Sin valor del dolar no se puede cotizar este producto importado.")
                     continue
             detalle = pedido.agregar_linea(producto, cantidad, valor_dolar)
-            print(f"  [OK] Linea agregada: {detalle}")
+            ok(f"Linea agregada: {detalle}")
 
         if not pedido.detalles:
-            print("\n  [!] El pedido quedo sin lineas: no se guarda.")
+            aviso("El pedido quedo sin lineas: no se guarda.")
             return
         self._pedidos.crear(pedido)
-        print(f"\n  [OK] Pedido guardado con {len(pedido.detalles)} linea(s) de detalle.")
-        print(f"       Total del pedido: {CLP.format(pedido.total_final_clp)} CLP "
-              f"(flete {CLP.format(pedido.total_flete_clp)})")
+        panel("PEDIDO GUARDADO", [
+            ("Numero", pedido.id_pedido),
+            ("Cliente", f"{pedido.cliente.id_cliente} - {pedido.cliente.nombre}"),
+            ("Lineas de detalle", str(len(pedido.detalles))),
+            ("Flete", f"{CLP.format(pedido.total_flete_clp)} CLP"),
+            ("TOTAL", f"{CLP.format(pedido.total_final_clp)} CLP"),
+        ])
 
     def _listar_pedidos(self) -> list:
         subtitulo("PEDIDOS REGISTRADOS")
         pedidos = self._pedidos.listar()
         if not pedidos:
-            print("  No hay pedidos registrados.")
+            aviso("No hay pedidos registrados todavia.")
             return []
-        for pedido in pedidos:
-            print(f"  - {pedido}")
+        tabla(
+            ["NUMERO", "CLIENTE", "FECHA", "PAGO", "ENTREGA", "TOTAL"],
+            [[p.id_pedido, p.cliente.nombre, f"{p.fecha_creacion:%d/%m/%Y}",
+              p.estado_pago, p.estado_entrega, CLP.format(p.total_final_clp)] for p in pedidos],
+            ["<", "<", "<", "<", "<", ">"],
+        )
         return pedidos
 
-    def _pedir_pedido(self) -> Pedido | None:
-        self._listar_pedidos()
-        id_pedido = pedir_texto("  Numero de pedido", self._entrada, 4, 20)
-        return self._pedidos.obtener(id_pedido)
-
     def _ver_detalle_pedido(self) -> None:
-        pedido = self._pedir_pedido()
+        pedido = self._elegir_pedido()
         if pedido is None:
             return
         subtitulo(f"DETALLE DEL PEDIDO {pedido.id_pedido}")
-        print(f"  Cliente        : {pedido.cliente.nombre} ({pedido.cliente.identificador})")
+        print(f"  Cliente        : {pedido.cliente.nombre} "
+              f"({pedido.cliente.tipo_identificador}: {pedido.cliente.identificador})")
         print(f"  Fecha          : {pedido.fecha_creacion:%Y-%m-%d %H:%M}")
         print(f"  Estado de pago : {pedido.estado_pago}")
         print(f"  Estado entrega : {pedido.estado_entrega}")
-        print("  Lineas de detalle:")
-        for numero, detalle in enumerate(pedido.detalles, 1):
-            print(f"    {numero}. {detalle}  -> ${detalle.calcular_subtotal():,.0f} CLP")
-        print(f"  Flete total    : {CLP.format(pedido.total_flete_clp)} CLP")
-        print(f"  TOTAL FINAL    : {CLP.format(pedido.total_final_clp)} CLP")
+        print("\n  Lineas de detalle:")
+        tabla(
+            ["#", "PRODUCTO", "CANT", "PRECIO UNIT.", "SUBTOTAL"],
+            [[str(numero), detalle.producto.nombre, str(detalle.cantidad),
+              CLP.format(detalle.precio_unitario_congelado),
+              CLP.format(detalle.calcular_subtotal())]
+             for numero, detalle in enumerate(pedido.detalles, 1)],
+            ["<", "<", ">", ">", ">"],
+        )
+        panel("TOTALES", [
+            ("Subtotal productos", CLP.format(pedido.total_final_clp - pedido.total_flete_clp) + " CLP"),
+            ("Flete", CLP.format(pedido.total_flete_clp) + " CLP"),
+            ("TOTAL FINAL", CLP.format(pedido.total_final_clp) + " CLP"),
+        ])
 
     def _confirmar_pedido(self) -> None:
-        pedido = self._pedir_pedido()
+        pedido = self._elegir_pedido()
         if pedido is None:
             return
         pedido.confirmar_pedido()
-        print(f"\n  [OK] El pedido {pedido.id_pedido} fue confirmado: hay stock suficiente "
-              f"y el cliente es valido. El stock aun no se descuenta (falta el pago).")
+        ok(f"Pedido {pedido.id_pedido} confirmado: hay stock suficiente y el "
+           f"cliente es valido. El stock aun no se descuenta (falta el pago).")
 
     def _registrar_pago(self) -> None:
-        pedido = self._pedir_pedido()
+        pedido = self._elegir_pedido()
         if pedido is None:
             return
         pedido.registrar_pago()
@@ -543,30 +649,35 @@ class AplicacionClickAndGo:
         self._pedidos.actualizar_estado(
             pedido.id_pedido, pedido.estado_pago, pedido.estado_entrega, pedido.total_final_clp
         )
-        print(f"\n  [OK] Pago registrado. El pedido figura como {pedido.estado_pago} "
-              f"y el stock fue descontado.")
+        ok(f"Pago registrado. El pedido quedo {pedido.estado_pago} y el stock fue descontado.")
+        tabla(
+            ["PRODUCTO", "STOCK RESTANTE"],
+            [[detalle.producto.nombre, str(detalle.producto.stock)] for detalle in pedido.detalles],
+            ["<", ">"],
+        )
 
     def _despachar_pedido(self) -> None:
-        pedido = self._pedir_pedido()
+        pedido = self._elegir_pedido()
         if pedido is None:
             return
         pedido.despachar(self._sesion)
         self._pedidos.actualizar_estado(
             pedido.id_pedido, pedido.estado_pago, pedido.estado_entrega, pedido.total_final_clp
         )
-        print(f"\n  [OK] Pedido {pedido.id_pedido} despachado por "
-              f"{self._sesion.nombre} ({self._sesion.rol}).")
+        ok(f"Pedido {pedido.id_pedido} despachado por {self._sesion.nombre} "
+           f"({self._sesion.rol}).")
 
     def _procesar_entrega(self) -> None:
-        pedido = self._pedir_pedido()
+        pedido = self._elegir_pedido()
         if pedido is None:
             return
         subtitulo(f"ENTREGAS DEL PEDIDO {pedido.id_pedido} (comportamiento polimorfico)")
         for numero, resultado in enumerate(pedido.procesar_despacho_entregas(), 1):
-            print(f"  {numero}. [{resultado['tipo']}] {resultado['producto']}")
+            print(f"\n  {negrita(str(numero) + '.')} {resultado['producto']} "
+                  f"{gris('[' + resultado['tipo'] + ']')}")
             print(f"     {resultado['mensaje']}")
             if resultado.get("enlace"):
-                print(f"     Enlace de descarga: {resultado['enlace']}")
+                print(f"     Enlace de descarga: {azul(resultado['enlace'])}")
             if resultado.get("agenda"):
                 print(f"     Agenda: {resultado['agenda']} | Direccion: {resultado['direccion']}")
         self._pedidos.actualizar_estado(
@@ -574,15 +685,18 @@ class AplicacionClickAndGo:
         )
 
     def _eliminar_pedido(self) -> None:
-        pedido = self._pedir_pedido()
+        pedido = self._elegir_pedido()
         if pedido is None:
             return
-        confirmar = pedir_opcion("  Confirma la eliminacion? (1=Si, 0=No)", ["1", "0"], self._entrada)
+        confirmar = pedir_opcion(
+            f"  Confirma eliminar el pedido {pedido.id_pedido}? (1=Si, 0=No)",
+            ["1", "0"], self._entrada,
+        )
         if confirmar != "1":
-            print("  Operacion cancelada.")
+            info("Operacion cancelada.")
             return
         if self._pedidos.eliminar(pedido.id_pedido):
-            print(f"\n  [OK] Pedido {pedido.id_pedido} eliminado (con sus lineas de detalle).")
+            ok(f"Pedido {pedido.id_pedido} eliminado junto con sus lineas de detalle.")
 
     # ==================================================================
     # Indicador externo y RBAC
@@ -591,26 +705,28 @@ class AplicacionClickAndGo:
         subtitulo("PRECIO CON EL DOLAR DEL DIA (mindicador.cl)")
         valor = self._valor_dolar()
         if valor is None:
-            print("  El sistema continua funcionando: puede reintentar mas tarde.")
+            info("El sistema continua funcionando: puede reintentar mas tarde.")
             return
         importados = self._productos.listar("ELECTRONICA")
         if not importados:
-            print("  No hay productos de electronica importada en el catalogo.")
+            aviso("No hay productos de electronica importada en el catalogo.")
             return
-        print(f"\n  {'PRODUCTO':<28}{'USD':>10}{'CLP DEL DIA':>18}")
-        print("  " + "-" * 56)
-        for producto in importados:
-            precio_clp = producto.calcular_precio_final(valor)
-            print(f"  {producto.nombre:<28}{producto.precio_usd:>10,.2f}{precio_clp:>18,.0f}")
-            print(f"     (USD {producto.precio_usd:,.2f} x {valor:,.2f} = ${precio_clp:,.0f} CLP, "
-                  f"stock {producto.stock})")
+        tabla(
+            ["CODIGO", "PRODUCTO", "USD", "CLP DEL DIA"],
+            [[p.id_producto, p.nombre, f"{p.precio_usd:,.2f}",
+              f"{p.calcular_precio_final(valor):,.0f}"] for p in importados],
+            ["<", "<", ">", ">"],
+        )
+        info(f"Calculado con el dolar de hoy: ${valor:,.2f} CLP/USD")
 
     def _listar_trabajadores(self) -> None:
         subtitulo("TRABAJADORES Y PERMISOS (RBAC)")
-        for trabajador in self._trabajadores.listar():
-            print(f"  - {trabajador.nombre:<18} {trabajador.rol:<18} "
-                  f"modificar_catalogo={trabajador.puede_modificar_catalogo()!s:<5} "
-                  f"despachar={trabajador.puede_despachar()}")
+        tabla(
+            ["TRABAJADOR", "ROL", "MODIFICA CATALOGO", "DESPACHA"],
+            [[t.nombre, t.rol, "Si" if t.puede_modificar_catalogo() else "No",
+              "Si" if t.puede_despachar() else "No"] for t in self._trabajadores.listar()],
+            ["<", "<", "<", "<"],
+        )
 
     def _iniciar_sesion(self) -> None:
         subtitulo("INICIAR SESION")
@@ -618,11 +734,11 @@ class AplicacionClickAndGo:
         password = self._entrada("  Contrasena: ")
         autenticado = self._trabajadores.autenticar(usuario, password)
         self._sesion = autenticado
-        print(f"\n  [OK] Bienvenido {autenticado.nombre} ({autenticado.rol}).")
+        ok(f"Bienvenido {autenticado.nombre} ({autenticado.rol}).")
 
     def _cargar_demo(self) -> None:
         cargar_datos_iniciales(self._bd)
-        print("\n  [OK] Datos de demostracion cargados (solo se agregan si faltan).")
+        ok("Datos de demostracion cargados (solo se agregan si faltan).")
 
 
 def main() -> None:

@@ -23,6 +23,23 @@ ecommerce/
   datos/               base de datos SQLite (se crea sola)
 </pre>
 
+<h2>Paso 0b. Los codigos los genera el sistema</h2>
+<p>
+  El usuario nunca escribe el identificador de un cliente ni de un producto. Al registrar, el
+  sistema calcula el siguiente codigo disponible consultando la base de datos y lo informa en el
+  resumen: <code>C01, C02, ...</code> para clientes y <code>F01</code>, <code>D01</code>,
+  <code>S01</code>, <code>E01</code> para los cuatro tipos de producto. Los pedidos usan
+  <code>PED-1001</code>.
+</p>
+<pre class="codigo">{% raw %}class GeneradorCodigos:
+    def siguiente_producto(self, tipo: str) -> str:
+        prefijo = PREFIJOS_PRODUCTO.get(tipo.upper())   # F, D, S o E
+        return self._siguiente_codigo("productos", "id_producto", prefijo){% endraw %}</pre>
+<p class="nota">
+  Esta es la mejora incorporada despues de la retroalimentacion de la Sumativa N2: se elimino el
+  ingreso manual del codigo y se reemplazo por seleccion numerada de los registros ya existentes.
+</p>
+
 <h2>Paso 1. El modelo: un dato con validacion obligatoria</h2>
 <p>
   El atributo <code>identificador</code> del cliente tiene <code>property</code> y validacion en el

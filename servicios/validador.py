@@ -10,6 +10,7 @@ from datetime import datetime
 
 from model.excepciones import DatoInvalidoError
 from model.cliente import validar_email, validar_rut
+from servicios.consola import aviso
 
 
 def limpiar_texto(valor: str) -> str:
@@ -113,7 +114,7 @@ def pedir_texto(mensaje, leer_entrada=input, minimo=3, maximo=80, permitir_vacio
                 return ""
             return validar_texto(valor, minimo, maximo)
         except DatoInvalidoError as error:
-            print(f"  [!] {error} Intente nuevamente.")
+            aviso(f"{error} Intente nuevamente.")
 
 
 def pedir_entero(mensaje, leer_entrada=input, minimo=None, maximo=None) -> int:
@@ -121,7 +122,7 @@ def pedir_entero(mensaje, leer_entrada=input, minimo=None, maximo=None) -> int:
         try:
             return validar_entero(leer_entrada(f"{mensaje}: "), minimo, maximo)
         except DatoInvalidoError as error:
-            print(f"  [!] {error} Intente nuevamente.")
+            aviso(f"{error} Intente nuevamente.")
 
 
 def pedir_decimal(mensaje, leer_entrada=input, minimo=None, maximo=None) -> float:
@@ -129,7 +130,7 @@ def pedir_decimal(mensaje, leer_entrada=input, minimo=None, maximo=None) -> floa
         try:
             return validar_decimal(leer_entrada(f"{mensaje}: "), minimo, maximo)
         except DatoInvalidoError as error:
-            print(f"  [!] {error} Intente nuevamente.")
+            aviso(f"{error} Intente nuevamente.")
 
 
 def pedir_fecha_futura(mensaje, leer_entrada=input) -> datetime:
@@ -137,7 +138,7 @@ def pedir_fecha_futura(mensaje, leer_entrada=input) -> datetime:
         try:
             return validar_fecha_futura(leer_entrada(f"{mensaje}: "))
         except DatoInvalidoError as error:
-            print(f"  [!] {error} Intente nuevamente.")
+            aviso(f"{error} Intente nuevamente.")
 
 
 def pedir_identificador(mensaje, tipo, leer_entrada=input) -> str:
@@ -145,7 +146,7 @@ def pedir_identificador(mensaje, tipo, leer_entrada=input) -> str:
         try:
             return validar_identificador(leer_entrada(f"{mensaje}: "), tipo)
         except DatoInvalidoError as error:
-            print(f"  [!] {error} Intente nuevamente.")
+            aviso(f"{error} Intente nuevamente.")
 
 
 def pedir_url(mensaje, leer_entrada=input) -> str:
@@ -153,14 +154,52 @@ def pedir_url(mensaje, leer_entrada=input) -> str:
         try:
             return validar_url(leer_entrada(f"{mensaje}: "))
         except DatoInvalidoError as error:
-            print(f"  [!] {error} Intente nuevamente.")
+            aviso(f"{error} Intente nuevamente.")
 
 
 def pedir_opcion(mensaje, opciones_validas, leer_entrada=input):
     """Lee una opcion de menu. Acepta texto porque el test P18 envia '99'."""
+    respuesta = limpiar_texto(leer_entrada(f"{mensaje}: "))
+    if respuesta.lower() in {str(opcion).lower() for opcion in opciones_validas}:
+        return respuesta
+    aviso(
+        f"La opcion '{respuesta}' no existe. "
+        f"Opciones validas: {', '.join(map(str, opciones_validas))}."
+    )
+    return None
+
+
+def pedir_seleccion(
+    items: list,
+    mensaje: str,
+    formatear,
+    codigo_de,
+    leer_entrada=input,
+    descripcion_cancelar: str = "volver al menu anterior",
+):
+    """Selecciona un elemento numerado de una lista.
+
+    Acepta el numero de la lista o el codigo de la entidad (por ejemplo E01).
+    Escribir 0 cancela la operacion.
+    """
+    from servicios.consola import listar_opciones
+
+    if not items:
+        return None
+    listar_opciones(items, formatear)
+    print(f"  0. {descripcion_cancelar}")
     while True:
         respuesta = limpiar_texto(leer_entrada(f"{mensaje}: "))
-        if respuesta.lower() in {str(o).lower() for o in opciones_validas}:
-            return respuesta
-        print(f"  [!] Opcion '{respuesta}' no existe. Opciones validas: {', '.join(map(str, opciones_validas))}.")
-        return None
+        if respuesta in ("", "0"):
+            return None
+        if respuesta.isdigit():
+            indice = int(respuesta)
+            if 1 <= indice <= len(items):
+                return items[indice - 1]
+        for item in items:
+            if str(codigo_de(item)).lower() == respuesta.lower():
+                return item
+        aviso(
+            f"'{respuesta}' no corresponde a ninguna opcion. "
+            f"Ingrese un numero entre 1 y {len(items)}, o 0 para cancelar."
+        )

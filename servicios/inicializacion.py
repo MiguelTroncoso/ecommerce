@@ -52,20 +52,20 @@ def _sembrar_demo(conexion: ConexionBD) -> None:
     productos = ProductoDAO(conexion)
 
     if clientes.contar() == 0:
-        clientes.crear(Cliente("CLI-01", "Miguel Troncoso", "19.876.543-0", "RUT"))
-        clientes.crear(Cliente("CLI-02", "Alexandy Remicinthe", "alexandy@clickandgo.cl", "EMAIL"))
+        clientes.crear(Cliente("C01", "Miguel Troncoso", "19.876.543-0", "RUT"))
+        clientes.crear(Cliente("C02", "Alexandy Remicinthe", "alexandy@clickandgo.cl", "EMAIL"))
 
     if productos.contar() > 0:
         return
 
     productos.crear(
         ProductoFisico(
-            "PROD-F01", "Silla Ergonómica Gamer", 85000.0, 10, peso_kg=14.0, volumen_m3=0.15
+            "F01", "Silla Ergonómica Gamer", 85000.0, 10, peso_kg=14.0, volumen_m3=0.15
         )
     )
     productos.crear(
         ProductoDigital(
-            "PROD-D01",
+            "D01",
             "Licencia Antivirus Pro",
             24990.0,
             100,
@@ -76,7 +76,7 @@ def _sembrar_demo(conexion: ConexionBD) -> None:
     )
     productos.crear(
         ProductoServicio(
-            "PROD-S01",
+            "S01",
             "Instalación Red Domiciliaria",
             40000.0,
             15,
@@ -87,7 +87,7 @@ def _sembrar_demo(conexion: ConexionBD) -> None:
     )
     productos.crear(
         ProductoElectronica(
-            "PROD-E01", "Monitor 4K Importado", 250.0, 5, peso_kg=4.5, volumen_m3=0.03
+            "E01", "Monitor 4K Importado", 250.0, 5, peso_kg=4.5, volumen_m3=0.03
         )
     )
 
