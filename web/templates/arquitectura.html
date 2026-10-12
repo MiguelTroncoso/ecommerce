@@ -86,9 +86,10 @@
     <code>SinPermisoError</code>, no con un simple mensaje.</p>
   </div>
   <div class="caja">
-    <h4>Tiempo maximo de espera</h4>
-    <p>La consulta a mindicador.cl usa <code>timeout=5</code>. Si la API falla, se usa el ultimo valor
-    conocido y se informa el problema.</p>
+    <h4>Tiempo maximo de espera y respaldo</h4>
+    <p>La consulta del dolar usa <code>timeout=5</code> y una cadena de proveedores:
+    <code>mindicador.cl</code> y, si no responde, <code>findic.cl</code>. Si fallan los dos, se usa el
+    ultimo valor conocido y se informa el problema.</p>
   </div>
   <div class="caja">
     <h4>Transacciones atomicas</h4>

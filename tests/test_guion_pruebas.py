@@ -24,6 +24,9 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
+from unittest import mock
+
+import requests
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
@@ -285,7 +288,64 @@ class BaseGuion(unittest.TestCase):
         except Exception as error:  # sin internet: se prueba con el respaldo
             self.skipTest(f"Sin conexion a mindicador.cl ({error})")
         self.assertGreater(indicador.valor, 0)
-        self.assertIn("mindicador.cl", indicador.fuente)
+        self.assertIn(indicador.proveedor, {"mindicador.cl", "findic.cl"})
+        self.assertIn(indicador.proveedor, indicador.fuente)
+
+    # ------------------------------------------------------------------
+    # Cadena de proveedores del indicador externo
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _respuesta_falsa(payload: dict):
+        class Respuesta:
+            def raise_for_status(self) -> None:
+                return None
+
+            def json(self) -> dict:
+                return payload
+
+        return Respuesta()
+
+    def test_cadena_de_respaldo_usa_el_segundo_proveedor(self) -> None:
+        """Si mindicador.cl falla, se usa findic.cl sin detener el sistema."""
+        llamadas: list[str] = []
+        payload = {"serie": [{"fecha": "2026-10-09", "valor": 981.61}]}
+
+        def get_simulado(url, timeout=None, headers=None):
+            llamadas.append(url)
+            if "mindicador" in url:
+                raise requests.ConnectionError("el proveedor principal no responde")
+            return self._respuesta_falsa(payload)
+
+        servicio = ServicioIndicadorDolar(
+            ruta_respaldo=Path(self._temporal.name) / "respaldo.json"
+        )
+        with mock.patch("servicios.indicador_dolar.requests.get", side_effect=get_simulado):
+            indicador, advertencia = servicio.valor_para_calculo()
+
+        self.assertEqual(llamadas, [
+            "https://mindicador.cl/api/dolar",
+            "https://findic.cl/api/dolar",
+        ])
+        self.assertIsNotNone(indicador)
+        self.assertEqual(indicador.valor, 981.61)
+        self.assertEqual(indicador.proveedor, "findic.cl")
+        self.assertIn("findic.cl", advertencia)
+
+    def test_cadena_de_respaldo_avisa_cuando_fallan_los_dos(self) -> None:
+        """Si fallan los dos proveedores, se informa y no se lanza la excepcion."""
+        def get_simulado(url, timeout=None, headers=None):
+            raise requests.ConnectionError("sin conexion")
+
+        servicio = ServicioIndicadorDolar(
+            ruta_respaldo=Path(self._temporal.name) / "sin_respaldo.json"
+        )
+        with mock.patch("servicios.indicador_dolar.requests.get", side_effect=get_simulado):
+            indicador, advertencia = servicio.valor_para_calculo()
+
+        self.assertIsNone(indicador)
+        self.assertIn("mindicador.cl", advertencia)
+        self.assertIn("findic.cl", advertencia)
+        self.assertEqual(len(servicio.ultimos_errores), 2)
 
     def test_p16_menu_calcula_el_precio_de_importados(self) -> None:
         salida = self.ejecutar_app(["4", "0"])

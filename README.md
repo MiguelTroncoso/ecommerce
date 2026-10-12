@@ -166,8 +166,9 @@ Todas se crean al iniciar el programa (`conexion.crear_tablas()`).
 ### Servicios (`servicios/`)
 
 * `validador.py`: validacion de tipo, formato y rango de **todas** las entradas del usuario.
-* `indicador_dolar.py`: consumo de `https://mindicador.cl/api/dolar` con `requests` y `timeout=5`,
-  con respaldo local del ultimo valor conocido.
+* `indicador_dolar.py`: consumo del dolar observado con `requests`, `timeout=5` y **cadena de
+  proveedores**: `mindicador.cl` (principal) y `findic.cl` (respaldo), con respaldo local del
+  ultimo valor conocido si fallan los dos.
 * `inicializacion.py`: creacion del esquema y carga de datos iniciales.
 * `codigos.py`: generacion automatica de codigos legibles (`C01`, `F01`, `D01`, `S01`, `E01`,
   `PED-1001`) consultando el ultimo codigo usado en la base de datos.
@@ -240,10 +241,37 @@ desde el metodo que corresponde y se captura de forma **especifica** en `main.py
 
 ### 4.5 Consumo de servicios externos
 
-**Decision:** la consulta a `mindicador.cl` usa la libreria oficial `requests` con
-`timeout=5`, valida el codigo HTTP con `raise_for_status()`, valida que la respuesta traiga la serie
-del dolar y guarda el ultimo valor conocido en `datos/dolar_respaldo.json`. Si la API falla, el
-sistema informa el problema y sigue funcionando con el ultimo valor (caso P17).
+**Decision:** el precio de la electronica importada no depende de un solo sitio. El servicio
+recorre una cadena de proveedores con el mismo formato de respuesta y se detiene en el primero que
+conteste:
+
+| Orden | Proveedor | Direccion base |
+| :-: | :--- | :--- |
+| 1 | mindicador.cl (principal) | `https://mindicador.cl/api/` |
+| 2 | findic.cl (respaldo) | `https://findic.cl/api/` |
+| 3 | Respaldo local | `datos/dolar_respaldo.json` (ultimo valor conocido) |
+
+Cada intento usa la libreria oficial `requests` con `timeout=5`, valida el codigo HTTP con
+`raise_for_status()` y valida que la respuesta traiga la serie del dolar. Cuando responde un
+proveedor de respaldo, el sistema **avisa cual se uso** y por que fallo el principal. Si fallan
+los dos, informa el problema y sigue funcionando con el ultimo valor guardado (caso P17).
+
+```python
+# servicios/indicador_dolar.py
+PROVEEDORES = (
+    ("mindicador.cl", "https://mindicador.cl/api/"),
+    ("findic.cl", "https://findic.cl/api/"),
+)
+
+for nombre, base in self._proveedores:
+    try:
+        return self._consultar_proveedor(nombre, base)
+    except IndicadorNoDisponibleError as error:
+        self.ultimos_errores.append(f"{nombre}: {error}")
+```
+
+Los dos sitios entregan el mismo formato (`serie[0].valor`), asi que el mismo parser sirve para
+ambos y agregar un tercer proveedor es solo una linea mas en la tupla.
 
 ---
 

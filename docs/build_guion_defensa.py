@@ -180,7 +180,9 @@ PREGUNTAS = [
     ["Donde se descuenta el stock y por que en ese lugar?",
      "En Pedido.registrar_pago(), despues de confirmar que hay stock, y en Producto.descontar_stock(). Si se descontara antes de confirmar, un pedido rechazado habria bajado el inventario igual."],
     ["Que pasa si la API del dolar no responde?",
-     "La consulta tiene timeout de cinco segundos y lanza IndicadorNoDisponibleError. valor_para_calculo() usa el ultimo valor guardado en datos/dolar_respaldo.json y avisa al operador. El sistema sigue funcionando: es el caso P17."],
+     "Hay tres niveles: cada intento tiene timeout de cinco segundos; si mindicador.cl no responde se intenta con findic.cl y se avisa cual se uso; si fallan los dos, valor_para_calculo() usa el ultimo valor guardado en datos/dolar_respaldo.json. El sistema nunca se cae: es el caso P17."],
+    ["Por que usan dos proveedores de indicadores?",
+     "Porque el sistema no debe depender de un solo sitio externo. Los dos entregan el mismo formato de respuesta, asi que se recorren en orden con un for y el mismo parser sirve para ambos. Agregar un tercero es una linea mas en la tupla PROVEEDORES."],
     ["Por que el precio de la electronica no se guarda en pesos en el catalogo?",
      "Porque depende del dolar del dia. Se guarda el costo en USD y se convierte al vender. El precio convertido queda congelado en la linea de detalle, para que el pedido no cambie si el dolar sube despues."],
     ["Que diferencia hay entre composicion y agregacion en su modelo?",
@@ -219,8 +221,8 @@ FICHAS = [
      "Convierte y valida lo que escribe el usuario. validar_entero() rechaza texto y numeros fuera de rango; validar_rut() aplica Modulo 11; validar_fecha_futura() exige formato y fecha posterior a hoy. Las funciones pedir_* repiten la pregunta.",
      "Si se llamara a int() directamente sobre lo que escribe el usuario, el programa se cae con ValueError. Ese es el caso P19 del guion de pruebas."],
     ["servicios/indicador_dolar.py",
-     "Consulta mindicador.cl con timeout de cinco segundos, valida el codigo de respuesta y toma el valor mas reciente de la serie. Guarda ese valor como respaldo y entrega el ultimo conocido cuando la consulta falla.",
-     "Sin timeout el programa puede quedar colgado; sin capturar la excepcion, el sistema se cae cuando no hay internet."],
+     "Recorre una cadena de proveedores (mindicador.cl y findic.cl) con timeout de cinco segundos cada uno, valida el codigo de respuesta y toma el valor mas reciente de la serie. Guarda ese valor como respaldo y entrega el ultimo conocido cuando fallan todos.",
+     "Sin timeout el programa puede quedar colgado; sin capturar la excepcion, el sistema se cae cuando no hay internet. Si se quita un proveedor de la tupla se pierde esa red de seguridad."],
     ["servicios/codigos.py",
      "Genera los codigos de clientes y productos. Recorre los existentes con una expresion regular, toma el mayor y propone el siguiente, verificando que no exista antes de asignarlo.",
      "Si no se verificara la existencia, se intentaria insertar un codigo duplicado y la clave primaria rechazaria el registro."],
@@ -423,8 +425,9 @@ def build() -> None:
             "<b>Quinto, un precio que depende de un indicador externo.</b> La clase "
             "<i>ProductoElectronica</i> hereda de ProductoFisico y guarda su costo en dolares. Su metodo "
             "<i>calcular_precio_final()</i> multiplica ese valor por el dolar del dia. Ese valor lo "
-            "entrega <b>servicios/indicador_dolar.py</b>, que consulta mindicador.cl con la libreria "
-            "requests. En el pedido se usa ese precio congelado en la linea de detalle.",
+            "entrega <b>servicios/indicador_dolar.py</b>, que consulta dos proveedores en cadena: primero "
+            "mindicador.cl y, si no responde, findic.cl. En el pedido se usa ese precio congelado en la "
+            "linea de detalle.",
             e["guion"],
         ),
         Paragraph(
@@ -483,12 +486,13 @@ def build() -> None:
             e["guion"],
         ),
         Paragraph(
-            "<b>Continuidad si la API falla.</b> Esta en <b>servicios/indicador_dolar.py</b>. La consulta "
-            "usa <i>requests.get</i> con <i>timeout=5</i>: el sistema no puede quedarse colgado esperando a "
-            "un servidor lento. Se valida que la respuesta traiga la serie del dolar y, si algo falla, se "
-            "lanza <i>IndicadorNoDisponibleError</i>. El metodo <i>valor_para_calculo()</i> usa entonces el "
-            "ultimo valor guardado en datos/dolar_respaldo.json y avisa al operador. Eso es el caso P17: se "
-            "corta el internet y el sistema informa y sigue funcionando.",
+            "<b>Continuidad si la API falla.</b> Esta en <b>servicios/indicador_dolar.py</b>, con tres "
+            "niveles. Primero, cada intento usa <i>requests.get</i> con <i>timeout=5</i>: el sistema no "
+            "puede quedarse colgado esperando a un servidor lento. Segundo, si el proveedor principal no "
+            "responde, el mismo codigo intenta con el proveedor de respaldo, que es findic.cl, y avisa cual "
+            "se uso. Tercero, si fallan los dos, <i>valor_para_calculo()</i> usa el ultimo valor guardado "
+            "en datos/dolar_respaldo.json y lo informa al operador. Eso es el caso P17: se corta el "
+            "internet y el sistema informa y sigue funcionando.",
             e["guion"],
         ),
         Paragraph(

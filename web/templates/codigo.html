@@ -124,18 +124,25 @@ def despachar(self, operador: Trabajador) -> bool:
     conexion.commit(){% endraw %}</pre>
 
 <h2>Paso 5. Consumo de la API externa</h2>
+<p>
+  El precio no depende de un solo sitio: se recorre una cadena de proveedores con el mismo formato de
+  respuesta y se usa el primero que conteste. Si fallan los dos, queda el ultimo valor guardado.
+</p>
 <pre class="codigo">{% raw %}def obtener_valor_dolar(self) -> ValorDolar:
-    try:
-        respuesta = requests.get(self._url, timeout=self._timeout)
-        respuesta.raise_for_status()
-        serie = respuesta.json().get("serie") or []
-        ultimo = serie[0]
-        return ValorDolar(float(ultimo["valor"]), str(ultimo["fecha"])[:10],
-                          "mindicador.cl (API en linea)")
-    except (requests.RequestException, ValueError, KeyError) as error:
-        raise IndicadorNoDisponibleError(
-            f"No fue posible obtener el dolar: {error}"
-        ) from error{% endraw %}</pre>
+    for nombre, base in self._proveedores:      # mindicador.cl y findic.cl
+        try:
+            return self._consultar_proveedor(nombre, base)
+        except IndicadorNoDisponibleError as error:
+            self.ultimos_errores.append(f"{nombre}: {error}")
+    raise IndicadorNoDisponibleError("Ningun proveedor respondio.")
+
+def _consultar_proveedor(self, nombre: str, base: str) -> ValorDolar:
+    url = f"{base.rstrip('/')}/dolar"
+    respuesta = requests.get(url, timeout=self._timeout)
+    respuesta.raise_for_status()
+    ultimo = (respuesta.json().get("serie") or [])[0]
+    return ValorDolar(float(ultimo["valor"]), str(ultimo["fecha"])[:10],
+                      f"{nombre} (API en linea)", nombre){% endraw %}</pre>
 
 <h2>Paso 6. Recorrido del menu principal</h2>
 <table class="tabla">

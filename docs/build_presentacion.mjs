@@ -396,12 +396,12 @@ async function main() {
   {
     const slide = p.slides.add();
     encabezado(slide, "INDICADOR EXTERNO", "El precio de la electronica depende del dolar del dia",
-      "servicios/indicador_dolar.py usa la libreria oficial requests");
+      "servicios/indicador_dolar.py: dos proveedores en cadena y respaldo local");
     const items = [
-      ["Consulta", "requests.get('https://mindicador.cl/api/dolar', timeout=5)", "La serie del dolar viene en el JSON; se toma el valor mas reciente."],
-      ["Conversion", "ProductoElectronica.calcular_precio_final(valor_dolar)", "precio_usd * valor_dolar, redondeado a pesos."],
-      ["Si la API falla", "except (RequestException, ValueError, KeyError)", "Se lanza IndicadorNoDisponibleError con el motivo."],
-      ["Continuidad", "ultimo_valor_conocido()", "Se usa el respaldo en datos/dolar_respaldo.json y se avisa al operador."],
+      ["1. Proveedor principal", "requests.get('https://mindicador.cl/api/dolar', timeout=5)", "Se toma el valor mas reciente de la serie del JSON."],
+      ["2. Proveedor de respaldo", "https://findic.cl/api/dolar", "Si el principal no responde, se intenta con el segundo y se avisa cual se uso."],
+      ["3. Conversion a pesos", "ProductoElectronica.calcular_precio_final(valor_dolar)", "precio_usd * valor_dolar, redondeado a pesos."],
+      ["4. Ultimo respaldo", "datos/dolar_respaldo.json", "Si fallan los dos proveedores, se usa el ultimo valor conocido y se informa."],
     ];
     items.forEach(([titulo, codigo, detalle], indice) => {
       const top = 172 + indice * 106;
@@ -414,9 +414,10 @@ async function main() {
     });
     slide.speakerNotes.text =
       "El quinto requisito es el precio con indicador externo. La electronica importada se cotiza en dolares y se " +
-      "convierte con el valor del dia que entrega mindicador.cl. Usamos la libreria requests con tiempo maximo de " +
-      "espera de cinco segundos. Si la API no responde, se guarda el ultimo valor conocido y el sistema lo informa " +
-      "y sigue funcionando: ese es el caso P17 del guion de pruebas.";
+      "convierte con el valor del dia. Para no depender de un solo sitio, el servicio recorre dos proveedores: " +
+      "primero mindicador.cl y, si no responde, findic.cl; los dos entregan el mismo formato. Cada intento usa " +
+      "requests con timeout de cinco segundos. Si fallan los dos, se usa el ultimo valor guardado y el sistema lo " +
+      "informa: ese es el caso P17 del guion de pruebas. Cuando responde el respaldo, el sistema avisa cual uso.";
   }
 
   // ---------------------------------------------------------------- 10
