@@ -8,7 +8,8 @@ Arquitectura:
     model/      clases del diagrama UML (una por archivo, con herencia,
                 encapsulamiento y excepciones propias de negocio)
     dao/        persistencia SQLite con consultas parametrizadas
-    servicios/  validacion de entradas, codigos automaticos y API mindicador.cl
+    servicios/  validacion de entradas, codigos automaticos y API del dolar
+                (mindicador.cl con respaldo en findic.cl)
     main.py     menu de consola que orquesta todo
 
 Ejecucion:
@@ -702,7 +703,7 @@ class AplicacionClickAndGo:
     # Indicador externo y RBAC
     # ==================================================================
     def _calcular_precio_dolar(self) -> None:
-        subtitulo("PRECIO CON EL DOLAR DEL DIA (mindicador.cl)")
+        subtitulo("PRECIO CON EL DOLAR DEL DIA (mindicador.cl con respaldo findic.cl)")
         valor = self._valor_dolar()
         if valor is None:
             info("El sistema continua funcionando: puede reintentar mas tarde.")
