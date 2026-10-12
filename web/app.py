@@ -65,6 +65,9 @@ class SesionConsola:
         entorno = {
             **os.environ,
             "CLICKANDGO_DB": str(self.ruta_bd),
+            # La consola web usa una etiqueta <pre>, que no interpreta los
+            # codigos de color ANSI: se desactivan solo para el navegador.
+            "CLICKANDGO_COLOR": "0",
             "PYTHONUNBUFFERED": "1",
             "PYTHONIOENCODING": "utf-8",
             "TERM": "xterm-256color",
